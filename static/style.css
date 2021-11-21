@@ -1,50 +1,87 @@
-.header{
-    padding: 5px 120px;
-    width: 150px;
-    height: 70px;
-    background-color: #236B8E;
+@import url('https://fonts.googleapis.com/css?family=Numans');
+
+html,body{
+background-image: url('../static/images/wallhaven-0wwwep.jpeg');
+background-size: cover;
+background-repeat: no-repeat;
+height: 100%;
+font-family: 'Numans', sans-serif;
 }
 
-.border{
-    padding: 80px 50px;
-    width: 400px;
-    height: 450px;
-    border: 1px solid #236B8E;
-    border-radius: 0px;
-    background-color: #9AC0CD;
+.container{
+height: 100%;
+align-content: center;
 }
 
-.btn {
-    padding: 10px 40px;
-    background-color: #236B8E;
-    color: #FFFFFF;
-    font-style: oblique;
-    font-weight: bold;
-    border-radius: 10px;
+.card{
+height: 370px;
+margin-top: auto;
+margin-bottom: auto;
+width: 400px;
+background-color: rgba(0,0,0,0.5) !important;
 }
 
-.textbox{
-    padding: 10px 40px;
-    background-color: #236B8E;
-    text-color: #FFFFFF;
-    border-radius: 10px;
+.social_icon span{
+font-size: 60px;
+margin-left: 10px;
+color: #FFC312;
 }
 
-::placeholder {
-    color: #FFFFFF;
-    opacity: 1;
-    font-style: oblique;
-    font-weight: bold;
+.social_icon span:hover{
+color: white;
+cursor: pointer;
 }
 
-.word{
-    color: #FFFFFF;
-    font-style: oblique;
-    font-weight: bold;
+.card-header h3{
+color: white;
 }
 
-.bottom{
-    color: #236B8E;
-    font-style: oblique;
-    font-weight: bold;
+.social_icon{
+position: absolute;
+right: 20px;
+top: -45px;
+}
+
+.input-group-prepend span{
+width: 50px;
+background-color: #FFC312;
+color: black;
+border:0 !important;
+}
+
+input:focus{
+outline: 0 0 0 0  !important;
+box-shadow: 0 0 0 0 !important;
+
+}
+
+.remember{
+color: white;
+}
+
+.remember input
+{
+width: 20px;
+height: 20px;
+margin-left: 15px;
+margin-right: 5px;
+}
+
+.login_btn{
+color: black;
+background-color: #FFC312;
+width: 100px;
+}
+
+.login_btn:hover{
+color: black;
+background-color: white;
+}
+
+.links{
+color: white;
+}
+
+.links a{
+margin-left: 4px;
 }

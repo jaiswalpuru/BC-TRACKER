@@ -23,19 +23,20 @@ mysql = MySQL(app)
 def login():
     display_message = ''
     if request.method=='POST' and 'username' in request.form and 'password' in request.form:
-        username = request.form['username']
+        user_name = request.form['username']
         password = request.form['password']
         cursor = mysql.get_db().cursor()
-        cursor.execute('SELECT * FROM Users WHERE phone_number = "4699272570" AND id = 1')
+        cursor.execute('SELECT * FROM Users WHERE UserName = %s AND Password = %s',(user_name, password))
         account = cursor.fetchone()
-        if account:
-            session['loggedin'] = True
-            session['id'] = account['id']
-            session['username'] = account['username']
-            msg = 'Logged in successfully !'
-            return render_template('index.html', msg=display_message)
-        else:
-            msg = 'Incorrect username / password !'
+        print(account)
+        # if account:
+        #     session['loggedin'] = True
+        #     session['id'] = account['id']
+        #     session['username'] = account['username']
+        #     msg = 'Logged in successfully !'
+        #     return render_template('index.html', msg=display_message)
+        # else:
+    msg = 'Incorrect username / password !'
     return render_template('login.html', msg=display_message)
 
 @app.route('/logout')
