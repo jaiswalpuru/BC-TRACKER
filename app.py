@@ -21,22 +21,30 @@ mysql = MySQL(app)
 @app.route("/")
 @app.route("/login", methods=['GET','POST'])
 def login():
-    display_message = ''
-    if request.method=='POST' and 'username' in request.form and 'password' in request.form:
+    msg = ''
+    type = ''
+    if request.method=='POST' and 'username' in request.form and 'password' in request.form and \
+            ('checkuser' in request.form or 'checkadmin' in request.form or 'checktrader' in request.form):
         user_name = request.form['username']
         password = request.form['password']
+        if 'checkuser' in request.form :
+            type = 'user'
+        elif 'checktrader' in request.form:
+            type = 'trader'
+        else:
+            type = 'admin'
         cursor = mysql.get_db().cursor()
-        cursor.execute('SELECT * FROM Users WHERE UserName = %s AND Password = %s',(user_name, password,))
+        cursor.execute('SELECT * FROM Users WHERE UserName = %s AND Password = %s and Type = %s',(user_name, password, type,))
         account = cursor.fetchone()
         if account:
             session['loggedin'] = True
             session['id'] = account[0]
             session['username'] = account[1]
             msg = 'Logged in successfully !'
-            return render_template('index.html', msg=display_message)
+            return render_template('index.html', msg=msg)
         else:
             msg = 'Incorrect username / password !'
-    return render_template('login.html', msg=display_message)
+    return render_template('login.html', msg=msg)
 
 @app.route('/logout')
 def logout():
@@ -49,7 +57,7 @@ def logout():
 def register():
     msg = ''
     if request.method == 'POST' and 'username' in request.form and 'password' in request.form and \
-            'email' in request.form and phone in request.form :
+            'email' in request.form and 'phone' in request.form :
         username = request.form['username']
         password = request.form['password']
         email = request.form['email']
@@ -63,11 +71,11 @@ def register():
             msg = 'Invalid email address !'
         elif not re.match(r'[A-Za-z0-9]+', username):
             msg = 'Username must contain only characters and numbers !'
-        elif not username or not password or not email:
+        elif not username or not password or not email or not phone:
             msg = 'Please fill out the form !'
         else:
-            cursor.execute('INSERT INTO Users VALUES (NULL, % s, % s, % s, %s, %s)', (username, password, email, phone, "User",))
-            mysql.connection.commit()
+            cursor.execute('INSERT INTO Users VALUES (NULL, % s, % s, % s, %s, %s)', (username, password, email, phone, "user",))
+            mysql.get_db().commit()
             msg = 'You have successfully registered !'
     elif request.method == 'POST':
         msg = 'Please fill out the form !'

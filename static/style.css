@@ -55,6 +55,11 @@ box-shadow: 0 0 0 0 !important;
 
 }
 
+.text{
+    background-color: #FFC312;
+    margin-bottom: 4px;
+}
+
 .remember{
 color: white;
 }

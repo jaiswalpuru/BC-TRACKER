@@ -23,7 +23,7 @@
 			</div>
 			<div class="card-body">
 				<form action="{{ url_for('login') }}" method="post">
-					<div class="msg">{{ msg }}</div>
+					<div class="msg text">{{ msg }}</div>
 					<div class="input-group form-group">
 						<div class="input-group-prepend">
 							<span class="input-group-text"><i class="fas fa-user"></i></span>
@@ -36,6 +36,20 @@
 							<span class="input-group-text"><i class="fas fa-key"></i></span>
 						</div>
 						<input id="password" name="password" type="password" class="form-control" placeholder="Password">
+					</div>
+					<div class="input-group form-group">
+						<div class="form-check">
+							<input class="form-check-input" type="checkbox" id="checkuser" name="checkuser">
+							<label class="form-check-label text" for="checkuser">User</label>
+						</div>
+						<div class="form-check">
+							<input class="form-check-input" type="checkbox" id="checktrader" name="checktrader">
+							<label class="form-check-label text" for="checktrader">Trader</label>
+						</div>
+						<div class="form-check">
+							<input class="form-check-input" type="checkbox" id="checkadmin" name="checkadmin">
+							<label class="form-check-label text" for="checkadmin">Admin</label>
+						</div>
 					</div>
 					<div class="form-group">
 						<input type="submit" value="Login" class="btn float-right login_btn">
