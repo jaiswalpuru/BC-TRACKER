@@ -29,14 +29,14 @@ def login():
         cursor.execute('SELECT * FROM Users WHERE UserName = %s AND Password = %s',(user_name, password))
         account = cursor.fetchone()
         print(account)
-        # if account:
-        #     session['loggedin'] = True
-        #     session['id'] = account['id']
-        #     session['username'] = account['username']
-        #     msg = 'Logged in successfully !'
-        #     return render_template('index.html', msg=display_message)
-        # else:
-    msg = 'Incorrect username / password !'
+        if account:
+            session['loggedin'] = True
+            session['id'] = account['id']
+            session['username'] = account['username']
+            msg = 'Logged in successfully !'
+            return render_template('index.html', msg=display_message)
+        else:
+            msg = 'Incorrect username / password !'
     return render_template('login.html', msg=display_message)
 
 @app.route('/logout')
