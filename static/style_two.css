@@ -1,0 +1,31 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap');
+
+h1{
+   color: white;
+   font-family: 'Playfair Display', serif;
+}
+
+.navbar{
+    background-color: #555556;
+}
+
+.balance{
+    color: white;
+    padding: 10px 10px;
+}
+
+html, body{
+    background-image: url('../static/images/k.png');
+    background-color: #111C2D;
+}
+.maincontainer{
+    color: white;
+
+    padding: 10px 10px;
+}
+
+.card{
+    color: black;
+    background-color: #FFA347;
+}
