@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS `TRANSACTION` (
 	`ClientId` int(11) NOT NULL, -- Who is initiating the transaction
     `TransactionId` varchar(100) NOT NULL,
     `TransactionType` varchar(10) NOT NULL, -- Buy or sell
-	`Date` DATE NOT NULL,
+	`Date` TIMESTAMP NOT NULL,
 	`CommisionPaid` FLOAT(10) NOT NULL,
     `CommisionType` varchar(10) NOT NULL,
     `RecipientId` varchar(10) NOT NULL,
@@ -58,11 +58,22 @@ CREATE TABLE IF NOT EXISTS `TRANSACTION` (
     FOREIGN KEY (ClientId) REFERENCES USERS(ClientId)
 )Engine=InnoDB DEFAULT CHARSET=utf8;
 
+
 INSERT INTO `Transaction` (`ClientId`,`TransactionId`,`TransactionType`, `Date`, `CommisionPaid`, `CommisionType`, `RecipientId`, `Status`) 
-VALUES (19, 'random1', 'Sell',DATE(), , , 20, 'pending');
+VALUES (19, 'random1', 'BUY', now(), 3500, 'Currency', 20, 'pending');
+
+INSERT INTO `Transaction` (`ClientId`,`TransactionId`,`TransactionType`, `Date`, `CommisionPaid`, `CommisionType`, `RecipientId`, `Status`) 
+VALUES (20, 'random2', 'BUY', now(), 5500, 'Currency', 22, 'pending');
+
+INSERT INTO `Transaction` (`ClientId`,`TransactionId`,`TransactionType`, `Date`, `CommisionPaid`, `CommisionType`, `RecipientId`, `Status`) 
+VALUES (20, 'random3', 'BUY', now(), 5500, 'Currency', 24, 'completed');
+
+INSERT INTO `Transaction` (`ClientId`,`TransactionId`,`TransactionType`, `Date`, `CommisionPaid`, `CommisionType`, `RecipientId`, `Status`) 
+VALUES (19, 'random5', 'BUY', now(), 5500, 'Currency', 23, 'completed');
+
 
 Select * from Address;
-Select * from Transaction;
+SELECT * FROM Transaction WHERE ClientId=19 AND DATE < NOW() GROUP BY Date;
 Select * from Users;
 SELECT * FROM Address;
 
