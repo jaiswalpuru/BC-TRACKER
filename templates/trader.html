@@ -7,8 +7,9 @@
     </head>
     <body>
         <h3>Pending Transactions</h3>
-        <table class="table">
-            <thead>
+        <form action="{{ url_for('register') }}" method="post">
+            <table class="table">
+                <thead>
                 <tr>
                     <th scope="col">#</th>
                     <th scope="col">ClientId</th>
@@ -21,8 +22,8 @@
                     <th scope="col">Status</th>
                     <th scope="col">Action</th>
                 </tr>
-            </thead>
-            <tbody>
+                </thead>
+                <tbody>
                 {% for d in data %}
                 <tr id="{{ d[0] }}">
                     <th scope="row">{{ loop.index }}</th>
@@ -34,9 +35,27 @@
                     <td>{{ d[5] }}</td>
                     <td>{{ d[6] }}</td>
                     <td>{{ d[7] }}</td>
+                    <td>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="decision" value="accept" id="{{ d[0] }}accept">
+                            <label class="form-check-label" for="{{ d[0] }}accept">
+                                Accept
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="decision" value="reject" id="{{ d[0] }}reject">
+                            <label class="form-check-label" for="{{ d[0] }}reject">
+                                Reject
+                            </label>
+                        </div>
+                    </td>
                 </tr>
                 {% endfor %}
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </form>
     </body>
 </html>

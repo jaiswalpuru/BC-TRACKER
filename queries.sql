@@ -73,7 +73,7 @@ VALUES (19, 'random5', 'BUY', now(), 5500, 'Currency', 23, 'completed');
 
 
 Select * from Address;
-SELECT * FROM Transaction WHERE ClientId=19 AND DATE < NOW() GROUP BY Date;
+SELECT * FROM Transaction WHERE ClientId=19 AND DATE < NOW() ORDER BY DATE ASC;
 Select * from Users;
 SELECT * FROM Address;
 

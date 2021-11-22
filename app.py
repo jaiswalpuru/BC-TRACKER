@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session
+from flask_caching import Cache
 from markupsafe import escape
 from flaskext.mysql import MySQL
 import pymysql
@@ -7,10 +8,19 @@ import datetime
 
 app = Flask(__name__)
 
+# cache config
+cache_config = {
+    "DEBUG" : True,
+    "CACHE_TYPE" : "SimpleCache",
+    "CACHE_DEFAULT_TIMEOUT" : 100000
+}
+app.config.from_mapping(cache_config)
+cache = Cache(app)
+
+
 # load the config values from yaml file
 with open("config.yaml", "r") as stream:
     data_loaded = yaml.safe_load(stream)
-
 config = data_loaded['DATABASE']
 
 # initialize all the key value pairs required for the mysql connection
@@ -59,6 +69,12 @@ def login():
     msg = ''
     user_type = ''
     file_load=''
+    data = ''
+
+    # check is user is already logged in
+    if len(session) > 0 and session['loggedin']:
+        data = get_data(session['user_type'])
+        return render_template(session['file_redirect'], msg=session['msg'], data=data)
 
     if request.method=='POST' and 'username' in request.form and 'password' in request.form and \
             ('checkuser' in request.form or 'checkadmin' in request.form or 'checktrader' in request.form):
@@ -76,14 +92,19 @@ def login():
 
         # get data based on the user type and render that specific template
         data = get_data(user_type)
+
+        #check if the user exists in db or not
         cursor = mysql.get_db().cursor()
         cursor.execute('SELECT * FROM Users WHERE UserName = %s AND Password = %s and Type = %s ',(user_name, password, user_type,))
         account = cursor.fetchone()
-
         if account:
+            #store in session
             session['loggedin'] = True
             session['id'] = account[0]
             session['username'] = account[1]
+            session['file_redirect'] = file_load
+            session['user_type'] = user_type
+            session['msg'] = msg
             msg = 'Logged in successfully !'
             return render_template(file_load, msg=msg, data=data)
         else:
@@ -97,7 +118,9 @@ def logout():
     session.pop('loggedin', None)
     session.pop('id', None)
     session.pop('username', None)
-
+    session.pop('file_redirect', None)
+    session.pop('user_type', None)
+    session.pop('msg', None)
     return redirect(url_for('login'))
 
 # sign up route
@@ -144,6 +167,10 @@ def register():
 @app.route('/userdata/<client_id>')
 def userdata(client_id):
     msg=''
+
+    #check if session is lost
+    if len(session) == 0 :
+        return render_template('login.html')
 
     # fetch the users past transactions
     cursor = mysql.get_db().cursor()
