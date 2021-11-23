@@ -3,7 +3,7 @@ from flask_caching import Cache
 from markupsafe import escape
 from flaskext.mysql import MySQL
 import pymysql
-import re, yaml, io
+import re, yaml, io, requests
 import datetime
 
 app = Flask(__name__)
@@ -17,6 +17,7 @@ cache_config = {
 app.config.from_mapping(cache_config)
 cache = Cache(app)
 
+tax_rate = 5.0 # this is tax rate for each transaction which occurs
 
 # load the config values from yaml file
 with open("config.yaml", "r") as stream:
@@ -31,17 +32,63 @@ app.config['MYSQL_DATABASE_DB'] = config['DB']
 
 mysql = MySQL(app)
 
+# get the current rate of bitcoin
+def get_current_rate():
+    response = requests.get("https://api.coindesk.com/v1/bpi/currentprice.json")
+    return response.json()['bpi']['USD']['rate_float']
+
 # update transaction table based on the decision of the user
 def update_transaction_table(client_decision):
 
-    for val in client_decision:
-        cursor = mysql.get_db().cursor()
-        if val == 'accepted':
-            cursor.execute('UPDATE Transaction SET Status = %s WHERE ClientId = %s AND TransactionId = %s', ("completed", val[0], val[1]))
-        else:
-            cursor.execute('UPDATE Transaction SET Status = %s WHERE ClientId = %s AND TransactionId = %s', ("rejected", val[0], val[1]))
+    cursor = mysql.get_db().cursor()
 
-    mysql.get_db().commit()
+    for val in client_decision:
+        print(val)
+        if val['transaction_type'] == 'BUY':
+
+            cursor.execute('SELECT * FROM ACC_DETAILS WHERE ClientId = %s', (val['client_id'], ))
+            acc_detail = cursor.fetchone()
+
+            rate = get_current_rate()
+            commission = val['commission_paid']
+            amt_to_buy = val['bitcoin_amt']
+            total_amt_to_be_paid = float(commission) + (float(amt_to_buy) * float(rate))
+            if acc_detail[2] < total_amt_to_be_paid :
+                return 'error'
+            else :
+                # update the transaction table
+                cursor.execute('UPDATE TRANSACTION SET Status = %s WHERE TransactionId = %s',
+                               (val['decision'], val['transaction_id'], ))
+
+                if val['decision'] == 'reject':
+                    mysql.get_db().commit()
+                    return
+                fiat_currency = float(acc_detail[2]) - float(total_amt_to_be_paid)
+                total_amt = fiat_currency + (float(amt_to_buy) * float(rate))
+
+                # update the acc_details table
+                cursor.execute('UPDATE ACC_DETAILS SET TotalAmount = %s, FiatCurrency = %s WHERE ClientId = %s ',
+                               (total_amt, fiat_currency, val['client_id'], ))
+
+                # update the bitcoin table
+                cursor.execute('SELECT * FROM BITCOIN WHERE ClientId = %s',(val['client_id'], ))
+                client_bitcoin_detail = cursor.fetchone()
+                cursor.execute('UPDATE BITCOIN SET Units = %s WHERE ClientId = %s',
+                               (float(client_bitcoin_detail[1])+float(val['bitcoin_amt']), val['client_id']))
+                mysql.get_db().commit()
+
+        else:
+            print("Sell")
+
+    return "hello"
+
+    #     cursor = mysql.get_db().cursor()
+    #     if val == 'accepted':
+    #         cursor.execute('UPDATE Transaction SET Status = %s WHERE ClientId = %s AND TransactionId = %s', ("completed", val[0], val[1]))
+    #     else:
+    #         cursor.execute('UPDATE Transaction SET Status = %s WHERE ClientId = %s AND TransactionId = %s', ("rejected", val[0], val[1]))
+    #
+    # mysql.get_db().commit()
 
 # will store the response of sql query in a 2d matrix and return
 def beautify_data_sql_response(data):
@@ -166,7 +213,7 @@ def register():
             msg = 'Please fill out the form !'
         else:
             cursor.execute('INSERT INTO USERS VALUES (NULL, % s, %s, %s, % s, % s, %s, %s)', (username, first_name, last_name,
-                                                                                      password, phone, email, "user",))
+                                                                                      password, phone, email, "silver",))
             cursor.execute('SELECT ClientId FROM USERS WHERE UserName = %s ', (username,))
             client_id = cursor.fetchone()[0]
             cursor.execute('INSERT INTO ADDRESS VALUES (%s, %s, %s, %s, %s)', (client_id, street_address, city, state, zip))
@@ -204,14 +251,23 @@ def update_transaction():
 
     client_decision = []
 
-    # store the client_id, transaction_id and decision in a list
+    # store the client_id, transaction_id and decision in a list of dictionary
     for client_transaction in request.form:
         temp = client_transaction.split("+")
-        client_id = temp[0]
-        transaction_id = temp[1]
-        decision = request.form[client_transaction]
-        client_decision.append([client_id, transaction_id, decision])
-
+        """
+        clientid=temp[0], transactionid=temp[1], transactiontype=temp[2], commissionpaid=temp[3], commissiontype=temp[4], 
+        recipientid=temp[5], bitcoinamt=temp[6]
+        """
+        t = dict()
+        t['client_id'] = temp[0]
+        t['transaction_id'] = temp[1]
+        t['transaction_type'] = temp[2]
+        t['commission_paid'] = temp[3]
+        t['commission_type'] = temp[4]
+        t['recipient_id'] = temp[5]
+        t['decision'] = "completed" if request.form[client_transaction]=="accept" else "reject"
+        t['bitcoin_amt'] = temp[6]
+        client_decision.append(t)
     update_transaction_table(client_decision)
 
     return redirect(url_for('login'))

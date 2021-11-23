@@ -2,8 +2,6 @@ CREATE DATABASE IF NOT EXISTS `BITCOIN_TRANSACTION` DEFAULT CHARACTER SET utf8 C
 
 USE BITCOIN_TRANSACTION;
 
-drop table users;
-
 -- Complete
 CREATE TABLE IF NOT EXISTS `USERS` (
 	`ClientId` int(11) NOT NULL AUTO_INCREMENT,
@@ -28,25 +26,25 @@ CREATE TABLE IF NOT EXISTS `ADDRESS` (
     FOREIGN KEY (ClientId) REFERENCES USERS(ClientId)
 )Engine=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
+
 -- Complete
 CREATE TABLE IF NOT EXISTS `ACC_DETAILS` (
 	`ClientId` int(11) NOT NULL,
     `TotalAmount` FLOAT(10) NOT NULL, -- Bticoin amt + Fiat currency
-	`FiatCurrecy` FLOAT(10) NOT NULL, -- $ amount
+	`FiatCurrency` FLOAT(10) NOT NULL, -- $ amount
     PRIMARY KEY(`ClientId`),
     FOREIGN KEY (ClientId) REFERENCES USERS(ClientId)
 )Engine=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
-Select * from Users;
+Select * from ACC_DETAILS;
 
 -- Complete
 CREATE TABLE IF NOT EXISTS `BITCOIN` (
 	`ClientId` int(11) NOT NULL,
-    `BitCoinType` varchar(100) NOT NULL,
     `Units` int(11) NOT NULL,
-    PRIMARY KEY(`ClientId`,`BitCoinType`),
+    PRIMARY KEY(`ClientId`),
     FOREIGN KEY (ClientId) REFERENCES USERS(ClientId)
-)Engine=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+)Engine=InnoDB DEFAULT CHARSET=utf8;
 
 -- Complete
 CREATE TABLE IF NOT EXISTS `TRANSACTION` (
@@ -55,38 +53,41 @@ CREATE TABLE IF NOT EXISTS `TRANSACTION` (
     `TransactionType` varchar(10) NOT NULL, -- Buy or sell
 	`Date` TIMESTAMP NOT NULL,
 	`CommisionPaid` FLOAT(10) NOT NULL,
-    `CommisionType` varchar(10) NOT NULL,
-    `RecipientId` varchar(10) NOT NULL,
+    `CommisionType` FLOAT(10) NOT NULL,
+    `RecipientId` int(10) NOT NULL,
+    `BitCoinAmount` FLOAT(10) NOT NULL,
     `Status` varchar(20) NOT NULL,
     PRIMARY KEY (`TransactionId`),
     FOREIGN KEY (ClientId) REFERENCES USERS(ClientId)
 )Engine=InnoDB DEFAULT CHARSET=utf8;
 
 
-INSERT INTO `Transaction` (`ClientId`,`TransactionId`,`TransactionType`, `Date`, `CommisionPaid`, `CommisionType`, `RecipientId`, `Status`) 
-VALUES (19, 'random1', 'BUY', now(), 3500, 'Currency', 20, 'pending');
+-- INSERT INTO `USERS` (`UserName`, `FirstName`, `LastName`,`Password`,`Phone`, `Email`, `Type`)
+-- VALUES ('Admin', 'first_admin', 'last_admin', '@dm1n', '4699272570','iamadmin@gmail.com', 'admin');
 
-INSERT INTO `Transaction` (`ClientId`,`TransactionId`,`TransactionType`, `Date`, `CommisionPaid`, `CommisionType`, `RecipientId`, `Status`) 
-VALUES (20, 'random2', 'BUY', now(), 5500, 'Currency', 22, 'pending');
-
-INSERT INTO `Transaction` (`ClientId`,`TransactionId`,`TransactionType`, `Date`, `CommisionPaid`, `CommisionType`, `RecipientId`, `Status`) 
-VALUES (20, 'random3', 'BUY', now(), 5500, 'Currency', 24, 'completed');
-
-INSERT INTO `Transaction` (`ClientId`,`TransactionId`,`TransactionType`, `Date`, `CommisionPaid`, `CommisionType`, `RecipientId`, `Status`) 
-VALUES (19, 'random5', 'BUY', now(), 5500, 'Currency', 23, 'completed');
-
-
-Select * from Address;
-SELECT * FROM Transaction WHERE ClientId=19 AND DATE < NOW() ORDER BY DATE ASC;
-Select * from Users;
-SELECT * FROM Address;
-Select * FROM Transaction;
-
-
-INSERT INTO `USERS` (`UserName`,`Password`,`Phone`, `Email`, `Type`) VALUES ('Admin', '@dm1n', '4699272570','iamadmin@gmail.com', 'admin');
-
--- INSERT INTO `USERS` (`UserName`,`Password`,`Phone`, `Email`, `Type`) VALUES ('Trader_two', 'trader@2', '4699252577','iamtradertwo@gmail.com', 'trader');
+INSERT INTO `USERS` (`UserName`, `FirstName`, `LastName`,`Password`,`Phone`, `Email`, `Type`) 
+VALUES ('Trader_two', 'second_trader', 'second_trader', 'trader@2', '4696053013','iamtradertwo@gmail.com', 'trader');
 
 -- GRANT ALL ON BITCOIN_TRANSACTION.* TO 'root'@'localhost';
 
+INSERT INTO `Transaction` (`ClientId`,`TransactionId`,`TransactionType`, `Date`, `CommisionPaid`, `CommisionType`, `RecipientId`, `BitCoinAmount`,`Status`) 
+VALUES (5, 'random1', 'BUY', now(), 3992.972, 7, 7, '1','pending');
 
+Select * from ACC_DETAILS;
+
+Select * from TRANSACTION;
+
+INSERT INTO `Transaction` (`ClientId`,`TransactionId`,`TransactionType`, `Date`, `CommisionPaid`, `CommisionType`, `RecipientId`, `BitCoinAmount`,`Status`) 
+VALUES (7, 'random3', 'BUY', now(), 3500, 'Currency', 8, 'ethereum:2','pending');
+
+INSERT INTO `Transaction` (`ClientId`,`TransactionId`,`TransactionType`, `Date`, `CommisionPaid`, `CommisionType`, `RecipientId`, `Status`) 
+VALUES (6, 'random2', 'BUY', now(), 5500, 'Currency', 7, 'pending');
+
+INSERT INTO `Transaction` (`ClientId`,`TransactionId`,`TransactionType`, `Date`, `CommisionPaid`, `CommisionType`, `RecipientId`, `Status`) 
+VALUES (5, 'random3', 'BUY', now(), 5500, 'Currency', 8, 'completed');
+
+INSERT INTO `Transaction` (`ClientId`,`TransactionId`,`TransactionType`, `Date`, `CommisionPaid`, `CommisionType`, `RecipientId`, `Status`) 
+VALUES (5, 'random5', 'BUY', now(), 5500, 'Currency', 9, 'completed');
+
+
+Select * from transaction;
