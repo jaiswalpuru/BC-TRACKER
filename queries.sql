@@ -5,6 +5,8 @@ USE BITCOIN_TRANSACTION;
 -- Complete
 CREATE TABLE IF NOT EXISTS `USERS` (
 	`ClientId` int(11) NOT NULL AUTO_INCREMENT,
+    `FirstName` varchar(100) NOT NULL,
+    `LastName` varchar(100) NOT NULL,
     `UserName` varchar(100) NOT NULL,
     `Password` varchar(100) NOT NULL,
 	`Phone` varchar(100) NOT NULL,
@@ -76,6 +78,7 @@ Select * from Address;
 SELECT * FROM Transaction WHERE ClientId=19 AND DATE < NOW() ORDER BY DATE ASC;
 Select * from Users;
 SELECT * FROM Address;
+Select * FROM Transaction;
 
 
 -- INSERT INTO `USERS` (`UserName`,`Password`,`Phone`, `Email`, `Type`) VALUES ('Admin', '@dm1n', '4699272570','iamadmin@gmail.com', 'admin');

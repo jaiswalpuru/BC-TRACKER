@@ -7,7 +7,7 @@
     </head>
     <body>
         <h3>Pending Transactions</h3>
-        <form action="{{ url_for('register') }}" method="post">
+        <form action="{{ url_for('update_transaction') }}" method="post">
             <table class="table">
                 <thead>
                 <tr>
@@ -37,13 +37,13 @@
                     <td>{{ d[7] }}</td>
                     <td>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="decision" value="accept" id="{{ d[0] }}accept">
+                            <input class="form-check-input" type="radio" name="{{ d[0] }}+{{ d[1] }}" value="accept" id="{{ d[0] }}accept">
                             <label class="form-check-label" for="{{ d[0] }}accept">
                                 Accept
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="decision" value="reject" id="{{ d[0] }}reject">
+                            <input class="form-check-input" type="radio" name="{{ d[0] }}+{{ d[1] }}" value="reject" id="{{ d[0] }}reject">
                             <label class="form-check-label" for="{{ d[0] }}reject">
                                 Reject
                             </label>

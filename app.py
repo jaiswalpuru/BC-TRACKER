@@ -31,7 +31,19 @@ app.config['MYSQL_DATABASE_DB'] = config['DB']
 
 mysql = MySQL(app)
 
-# Will store the response of sql query in a 2d matrix and return
+# update transaction table based on the decision of the user
+def update_transaction_table(client_decision):
+
+    for val in client_decision:
+        cursor = mysql.get_db().cursor()
+        if val == 'accepted':
+            cursor.execute('UPDATE Transaction SET Status = %s WHERE ClientId = %s AND TransactionId = %s', ("completed", val[0], val[1]))
+        else:
+            cursor.execute('UPDATE Transaction SET Status = %s WHERE ClientId = %s AND TransactionId = %s', ("rejected", val[0], val[1]))
+
+    mysql.get_db().commit()
+
+# will store the response of sql query in a 2d matrix and return
 def beautify_data_sql_response(data):
     res = []
 
@@ -49,7 +61,7 @@ def beautify_data_sql_response(data):
     return res
 
 #--------------------Needs to completed--------------------------------------------
-#Fetch the data which need to be shown to respective user.
+# fetch the data which need to be shown to respective user.
 def get_data(user_type):
     cursor = mysql.get_db().cursor()
 
@@ -182,3 +194,21 @@ def userdata(client_id):
         msg='This is the first transaction'
 
     return render_template('userdata.html', msg=msg, data=data)
+
+
+@app.route('/update_transaction', methods=['POST'])
+def update_transaction():
+
+    client_decision = []
+
+    # store the client_id, transaction_id and decision in a list
+    for client_transaction in request.form:
+        temp = client_transaction.split("+")
+        client_id = temp[0]
+        transaction_id = temp[1]
+        decision = request.form[client_transaction]
+        client_decision.append([client_id, transaction_id, decision])
+
+    update_transaction_table(client_decision)
+
+    return redirect(url_for('login'))
