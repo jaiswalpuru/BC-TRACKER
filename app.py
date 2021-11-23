@@ -140,10 +140,12 @@ def logout():
 def register():
     msg = ''
 
-    if request.method == 'POST' and 'username' in request.form and 'password' in request.form and \
-            'email' in request.form and 'phone' in request.form and 'phone' in request.form and 'staddress' in request.form and \
-            'city' in request.form and 'zip' in request.form and 'state' in request.form:
+    if request.method == 'POST' and 'username' in request.form and 'firstname' in request.form and 'lastname' in request.form and \
+            'password' in request.form and 'email' in request.form and 'phone' in request.form and 'phone' in request.form and \
+            'staddress' in request.form and 'city' in request.form and 'zip' in request.form and 'state' in request.form:
         username = request.form['username']
+        first_name = request.form['firstname']
+        last_name = request.form['lastname']
         password = request.form['password']
         email = request.form['email']
         phone = request.form['phone']
@@ -163,7 +165,8 @@ def register():
         elif not username or not password or not email or not phone:
             msg = 'Please fill out the form !'
         else:
-            cursor.execute('INSERT INTO USERS VALUES (NULL, % s, % s, % s, %s, %s)', (username, password, phone, email, "user",))
+            cursor.execute('INSERT INTO USERS VALUES (NULL, % s, %s, %s, % s, % s, %s, %s)', (username, first_name, last_name,
+                                                                                      password, phone, email, "user",))
             cursor.execute('SELECT ClientId FROM USERS WHERE UserName = %s ', (username,))
             client_id = cursor.fetchone()[0]
             cursor.execute('INSERT INTO ADDRESS VALUES (%s, %s, %s, %s, %s)', (client_id, street_address, city, state, zip))

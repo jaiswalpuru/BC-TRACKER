@@ -2,12 +2,14 @@ CREATE DATABASE IF NOT EXISTS `BITCOIN_TRANSACTION` DEFAULT CHARACTER SET utf8 C
 
 USE BITCOIN_TRANSACTION;
 
+drop table users;
+
 -- Complete
 CREATE TABLE IF NOT EXISTS `USERS` (
 	`ClientId` int(11) NOT NULL AUTO_INCREMENT,
+    `UserName` varchar(100) NOT NULL,
     `FirstName` varchar(100) NOT NULL,
     `LastName` varchar(100) NOT NULL,
-    `UserName` varchar(100) NOT NULL,
     `Password` varchar(100) NOT NULL,
 	`Phone` varchar(100) NOT NULL,
 	`Email` varchar(100) NOT NULL,
@@ -81,7 +83,7 @@ SELECT * FROM Address;
 Select * FROM Transaction;
 
 
--- INSERT INTO `USERS` (`UserName`,`Password`,`Phone`, `Email`, `Type`) VALUES ('Admin', '@dm1n', '4699272570','iamadmin@gmail.com', 'admin');
+INSERT INTO `USERS` (`UserName`,`Password`,`Phone`, `Email`, `Type`) VALUES ('Admin', '@dm1n', '4699272570','iamadmin@gmail.com', 'admin');
 
 -- INSERT INTO `USERS` (`UserName`,`Password`,`Phone`, `Email`, `Type`) VALUES ('Trader_two', 'trader@2', '4699252577','iamtradertwo@gmail.com', 'trader');
 
