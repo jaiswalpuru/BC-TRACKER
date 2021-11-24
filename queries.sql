@@ -30,7 +30,6 @@ CREATE TABLE IF NOT EXISTS `ADDRESS` (
 -- Complete
 CREATE TABLE IF NOT EXISTS `ACC_DETAILS` (
 	`ClientId` int(11) NOT NULL,
-    `TotalAmount` FLOAT(10) NOT NULL, -- Bticoin amt + Fiat currency
 	`FiatCurrency` FLOAT(10) NOT NULL, -- $ amount
     PRIMARY KEY(`ClientId`),
     FOREIGN KEY (ClientId) REFERENCES USERS(ClientId)
@@ -41,7 +40,7 @@ Select * from ACC_DETAILS;
 -- Complete
 CREATE TABLE IF NOT EXISTS `BITCOIN` (
 	`ClientId` int(11) NOT NULL,
-    `Units` int(11) NOT NULL,
+    `Units` Float(10) NOT NULL,
     PRIMARY KEY(`ClientId`),
     FOREIGN KEY (ClientId) REFERENCES USERS(ClientId)
 )Engine=InnoDB DEFAULT CHARSET=utf8;
@@ -61,6 +60,17 @@ CREATE TABLE IF NOT EXISTS `TRANSACTION` (
     FOREIGN KEY (ClientId) REFERENCES USERS(ClientId)
 )Engine=InnoDB DEFAULT CHARSET=utf8;
 
+-- Complete
+CREATE TABLE IF NOT EXISTS `SELLER` (
+	`ClientId` int(11) NOT NULL,
+    `Units` Float(10) NOT NULL,
+	`Date` TIMESTAMP NOT NULL,
+	`CommisionPaid` FLOAT(10) NOT NULL,
+    `CommisionType` FLOAT(10) NOT NULL,
+    PRIMARY KEY(`ClientId`),
+    FOREIGN KEY (ClientId) REFERENCES USERS(ClientId)
+)Engine=InnoDB DEFAULT CHARSET=utf8;
+
 
 -- INSERT INTO `USERS` (`UserName`, `FirstName`, `LastName`,`Password`,`Phone`, `Email`, `Type`)
 -- VALUES ('Admin', 'first_admin', 'last_admin', '@dm1n', '4699272570','iamadmin@gmail.com', 'admin');
@@ -75,10 +85,14 @@ VALUES (5, 'random1', 'BUY', now(), 3992.972, 7, 7, '1','pending');
 
 Select * from ACC_DETAILS;
 
-Select * from TRANSACTION;
 
+Select * from TRANSACTION;
+Select * from Seller;
+
+
+select * from BITCOIN;
 INSERT INTO `Transaction` (`ClientId`,`TransactionId`,`TransactionType`, `Date`, `CommisionPaid`, `CommisionType`, `RecipientId`, `BitCoinAmount`,`Status`) 
-VALUES (7, 'random3', 'BUY', now(), 3500, 'Currency', 8, 'ethereum:2','pending');
+VALUES (7, 'random9', 'BUY', now(), 3500, 5, 8, '2','pending');
 
 INSERT INTO `Transaction` (`ClientId`,`TransactionId`,`TransactionType`, `Date`, `CommisionPaid`, `CommisionType`, `RecipientId`, `Status`) 
 VALUES (6, 'random2', 'BUY', now(), 5500, 'Currency', 7, 'pending');
@@ -89,5 +103,4 @@ VALUES (5, 'random3', 'BUY', now(), 5500, 'Currency', 8, 'completed');
 INSERT INTO `Transaction` (`ClientId`,`TransactionId`,`TransactionType`, `Date`, `CommisionPaid`, `CommisionType`, `RecipientId`, `Status`) 
 VALUES (5, 'random5', 'BUY', now(), 5500, 'Currency', 9, 'completed');
 
-
-Select * from transaction;
+Select * from Transaction;

@@ -3,8 +3,10 @@ from flask_caching import Cache
 from markupsafe import escape
 from flaskext.mysql import MySQL
 import pymysql
-import re, yaml, io, requests
+import requests
+import re, yaml, io
 import datetime
+import json
 
 app = Flask(__name__)
 
@@ -17,7 +19,9 @@ cache_config = {
 app.config.from_mapping(cache_config)
 cache = Cache(app)
 
-tax_rate = 5.0 # this is tax rate for each transaction which occurs
+# tax rate based on membership type
+tax_rate_gold_member = 5.0
+tax_rate_silver_member = 7.0
 
 # load the config values from yaml file
 with open("config.yaml", "r") as stream:
@@ -32,10 +36,32 @@ app.config['MYSQL_DATABASE_DB'] = config['DB']
 
 mysql = MySQL(app)
 
+# return the current date time as per the specification of the db
+def get_current_datetime():
+    return datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+
+# will store the response of sql query in a 2d matrix and return
+def beautify_sql_response_pending_transaction(data):
+    res = []
+
+    for row in range(len(data)):
+        temp = []
+        for col in range(len(data[row])):
+            if isinstance(data[row][col], datetime.datetime):
+                t = data[row][col]
+                t = t.isoformat()
+                temp.append(t)
+            else:
+                temp.append(data[row][col])
+        res.append(temp)
+
+    return res
+
 # get the current rate of bitcoin
 def get_current_rate():
     response = requests.get("https://api.coindesk.com/v1/bpi/currentprice.json")
     return response.json()['bpi']['USD']['rate_float']
+
 
 # update transaction table based on the decision of the user
 def update_transaction_table(client_decision):
@@ -43,7 +69,6 @@ def update_transaction_table(client_decision):
     cursor = mysql.get_db().cursor()
 
     for val in client_decision:
-        print(val)
         if val['transaction_type'] == 'BUY':
 
             cursor.execute('SELECT * FROM ACC_DETAILS WHERE ClientId = %s', (val['client_id'], ))
@@ -67,8 +92,8 @@ def update_transaction_table(client_decision):
                 total_amt = fiat_currency + (float(amt_to_buy) * float(rate))
 
                 # update the acc_details table
-                cursor.execute('UPDATE ACC_DETAILS SET TotalAmount = %s, FiatCurrency = %s WHERE ClientId = %s ',
-                               (total_amt, fiat_currency, val['client_id'], ))
+                cursor.execute('UPDATE ACC_DETAILS SET FiatCurrency = %s WHERE ClientId = %s ',
+                               ( fiat_currency, val['client_id'], ))
 
                 # update the bitcoin table
                 cursor.execute('SELECT * FROM BITCOIN WHERE ClientId = %s',(val['client_id'], ))
@@ -76,36 +101,25 @@ def update_transaction_table(client_decision):
                 cursor.execute('UPDATE BITCOIN SET Units = %s WHERE ClientId = %s',
                                (float(client_bitcoin_detail[1])+float(val['bitcoin_amt']), val['client_id']))
                 mysql.get_db().commit()
-
         else:
             print("Sell")
-
     return "hello"
 
-    #     cursor = mysql.get_db().cursor()
-    #     if val == 'accepted':
-    #         cursor.execute('UPDATE Transaction SET Status = %s WHERE ClientId = %s AND TransactionId = %s', ("completed", val[0], val[1]))
-    #     else:
-    #         cursor.execute('UPDATE Transaction SET Status = %s WHERE ClientId = %s AND TransactionId = %s', ("rejected", val[0], val[1]))
-    #
-    # mysql.get_db().commit()
+#--------------------Needs to completed--------------------------------------------
+# fetch the data which need to be shown to respective user.
+def get_pending_data(user_type, client_id=0):
+    cursor = mysql.get_db().cursor()
 
-# will store the response of sql query in a 2d matrix and return
-def beautify_data_sql_response(data):
-    res = []
-
-    for row in range(len(data)):
-        temp = []
-        for col in range(len(data[row])):
-            if isinstance(data[row][col], datetime.datetime):
-                t = data[row][col]
-                t = t.isoformat()
-                temp.append(t)
-            else:
-                temp.append(data[row][col])
-        res.append(temp)
-
-    return res
+    if user_type == 'silver' or user_type == 'gold':
+        cursor.execute('SELECT * FROM TRANSACTION WHERE ClientId = %s AND Status = %s', (client_id, "pending"))
+        data = cursor.fetchall()
+        return beautify_sql_response_pending_transaction(data)
+    elif user_type == 'admin':
+        return 'admin'
+    else :
+        cursor.execute('SELECT * FROM TRANSACTION WHERE Status = %s ', ("pending", ))
+        data = cursor.fetchall()
+        return beautify_sql_response_pending_transaction(data)
 
 # get details of bitcoin
 def get_user_bitcoin_details(client_id):
@@ -141,24 +155,10 @@ def get_user_details(user_name, password, user_type, return_status):
         status = cursor.fetchone()
         return status[0]
 
-
-
-#--------------------Needs to completed--------------------------------------------
-# fetch the data which need to be shown to respective user.
-def get_pending_data(user_type, client_id=0):
-    cursor = mysql.get_db().cursor()
-
-    if user_type == 'silver' or user_type == 'gold':
-        print(user_type, client_id)
-        cursor.execute('SELECT * FROM TRANSACTION WHERE ClientId = %s AND Status = %s', (client_id, "pending"))
-        data = cursor.fetchall()
-        return beautify_data_sql_response(data)
-    elif user_type == 'admin':
-        return 'admin'
-    else :
-        cursor.execute('SELECT * FROM TRANSACTION WHERE Status = %s ', ("pending", ))
-        data = cursor.fetchall()
-        return beautify_data_sql_response(data)
+# make session time 5 min
+@app.before_request
+def make_session_permanent():
+    app.permanent_session_lifetime = datetime.timedelta(minutes=5)
 
 # homepage/login route
 @app.route("/")
@@ -266,7 +266,12 @@ def register():
             cursor.execute('SELECT ClientId FROM USERS WHERE UserName = %s ', (username,))
             client_id = cursor.fetchone()[0]
             cursor.execute('INSERT INTO ADDRESS VALUES (%s, %s, %s, %s, %s)', (client_id, street_address, city, state, zip))
-            cursor.execute('INSERT INTO ACC_DETAILS VALUES (%s, %s, %s)', (client_id, '100000', '100000'))
+
+            # inserting dummy data in acc and bitcoin table
+            bitcoin_rate = get_current_rate()
+            total_amt = 100000 + (2 * bitcoin_rate)
+            cursor.execute('INSERT INTO ACC_DETAILS VALUES (%s, %s)', (client_id, '100000'))
+            cursor.execute('INSERT INTO BITCOIN VALUES (%s, %s)',( client_id, 2))
             mysql.get_db().commit()
             msg = 'You have successfully registered !'
     elif request.method == 'POST':
@@ -294,9 +299,37 @@ def userdata(client_id):
 
     return render_template('userdata.html', msg=msg, data=data)
 
+# insert in transaction table for selling the transaction on which trader/admin can take action
+@app.route('/sell_transaction', methods=['POST'])
+def sell_transaction():
+    bytes_response = request.data
+    json_response = bytes_response.decode('utf8').replace("'", '"')
+    obj = json.loads(json_response)
+    client_id = obj["ClientId"]
+    transaction_id = obj["TransactionId"]
+    transaction_type = obj["TransactionType"]
+    membership_type = obj["MembershipType"]
+    bitcoin_unit_to_sold = obj["BitcoinSell"]
+
+    commission_type = 0
+    if membership_type == 'gold':
+        commission_type = tax_rate_gold_member
+    else:
+        commission_type = tax_rate_silver_member
+
+    rate = get_current_rate()
+    commission_paid = float(bitcoin_unit_to_sold) * int(rate)/100
+
+    cursor = mysql.get_db().cursor()
+    cursor.execute('INSERT INTO SELLER VALUES (%s, %s, %s, %s, %s)',
+                   (client_id, bitcoin_unit_to_sold, get_current_datetime(), commission_paid, commission_type))
+    mysql.get_db().commit()
+    return json.dumps({'success':True})
+
+
+# update a list of transactions which is selected by the trader
 @app.route('/update_transaction', methods=['POST'])
 def update_transaction():
-
     client_decision = []
 
     # store the client_id, transaction_id and decision in a list of dictionary
