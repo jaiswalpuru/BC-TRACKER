@@ -108,14 +108,21 @@ def beautify_data_sql_response(data):
     return res
 
 # get details of bitcoin
-def get_user_bitcoin_details():
+def get_user_bitcoin_details(client_id):
     cursor = mysql.get_db().cursor()
+    cursor.execute('SELECT Units FROM BITCOIN WHERE ClientId = %s', (client_id,))
+    units = cursor.fetchone()
+    if units is None:
+        return None
+    return units[0]
 
 # get balance details
 def get_account_details(client_id):
     cursor = mysql.get_db().cursor()
     cursor.execute('SELECT * FROM ACC_DETAILS WHERE ClientId = %s', (client_id, ))
     res = cursor.fetchone()
+    if res is None:
+        return None
     return list(res)
 
 # get the users details or the status based on the flag return_status
@@ -126,25 +133,30 @@ def get_user_details(user_name, password, user_type, return_status):
         cursor.execute('SELECT * FROM Users WHERE UserName = %s AND Password = %s and Type IN %s ',
                        (user_name, password, user_type,))
         account = cursor.fetchone()
+        if account is None:
+            return None
         return list(account)
     else:
         cursor.execute('SELECT Type FROM Users WHERE UserName = %s', (user_name, ))
         status = cursor.fetchone()
-        return status
+        return status[0]
 
 
 
 #--------------------Needs to completed--------------------------------------------
 # fetch the data which need to be shown to respective user.
-def get_pending_data(user_type):
+def get_pending_data(user_type, client_id=0):
     cursor = mysql.get_db().cursor()
 
-    if user_type == 'user':
-        return 'user'
+    if user_type == 'silver' or user_type == 'gold':
+        print(user_type, client_id)
+        cursor.execute('SELECT * FROM TRANSACTION WHERE ClientId = %s AND Status = %s', (client_id, "pending"))
+        data = cursor.fetchall()
+        return beautify_data_sql_response(data)
     elif user_type == 'admin':
         return 'admin'
     else :
-        cursor.execute('SELECT * FROM Transaction WHERE Status = %s ', ("pending", ))
+        cursor.execute('SELECT * FROM TRANSACTION WHERE Status = %s ', ("pending", ))
         data = cursor.fetchall()
         return beautify_data_sql_response(data)
 
@@ -163,9 +175,10 @@ def login():
     if len(session) > 0 and session['loggedin']:
         acc_details = get_account_details(session['id'])
         membership_type = get_user_details(session['username'], '', '', True)
-        data = get_pending_data(membership_type)
+        data = get_pending_data(membership_type,session['id'])
+        units = get_user_bitcoin_details(session['id'])
         return render_template(session['file_redirect'], msg=session['msg'], data=data, acc_details=acc_details,
-                               membership_type=membership_type)
+                               membership_type=membership_type, bitcoin_unit=units, bitcoin_rate=get_current_rate())
 
     if request.method=='POST' and 'username' in request.form and 'password' in request.form and \
             ('checkuser' in request.form or 'checkadmin' in request.form or 'checktrader' in request.form):
@@ -180,16 +193,20 @@ def login():
         else:
             user_type = ['admin']
             file_load = 'admin.html'
-        # get data based on the user type and render that specific template
-        data = get_pending_data(user_type)
 
         #check if the user exists in db or no
         account = get_user_details(user_name, password, user_type, False)
-        print(account)
+
         if account:
             # get the account details associated with the user
             acc_details = get_account_details(account[0])
             msg = 'Logged in successfully !'
+
+            # get user bitcoin units of a user
+            units = get_user_bitcoin_details(account[0])
+
+            # get data based on the user type and render that specific template
+            data = get_pending_data(account[7], account[0])
 
             #store in session
             session['loggedin'] = True
@@ -197,7 +214,8 @@ def login():
             session['username'] = account[1]
             session['file_redirect'] = file_load
             session['msg'] = msg
-            return render_template(file_load, msg=msg, data=data, acc_details=acc_details, membership_type=account[7])
+            return render_template(file_load, msg=msg, data=data, acc_details=acc_details,
+                                   membership_type=account[7], bitcoin_unit=units, bitcoin_rate=get_current_rate())
         else:
             msg = 'Incorrect username / password !'
 
@@ -275,7 +293,6 @@ def userdata(client_id):
         msg='This is the first transaction'
 
     return render_template('userdata.html', msg=msg, data=data)
-
 
 @app.route('/update_transaction', methods=['POST'])
 def update_transaction():
