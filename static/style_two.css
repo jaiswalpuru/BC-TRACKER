@@ -1,31 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=PT+Serif&display=swap');
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap');
-
-h1{
-   color: white;
-   font-family: 'Playfair Display', serif;
-}
-
-.navbar{
-    background-color: #555556;
-}
-
-.balance{
+.navbar-toggler button{
     color: white;
-    padding: 10px 10px;
+    background-color: white;
 }
 
-html, body{
-    background-image: url('../static/images/k.png');
-    background-color: #111C2D;
+.iconnavbar{
+    background-color: white;
 }
-.maincontainer{
+
+#InitialHeading {
+    font-family: 'PT Serif', serif;
     color: white;
-
-    padding: 10px 10px;
 }
 
-.card{
-    color: black;
-    background-color: #FFA347;
+#mainnavbar{
+    background-color: black;
+}
+
+body {
+    font-family: 'PT Serif', serif;
+}
+
+hr.pagediv{
+    border-top: dotted 3px;
+    border-width: 4px;
+}
+
+
+#myDIV{
+    display: none;
+}
+
+button.like{
+    float: right;
 }

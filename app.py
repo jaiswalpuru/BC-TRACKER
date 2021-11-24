@@ -107,9 +107,36 @@ def beautify_data_sql_response(data):
 
     return res
 
+# get details of bitcoin
+def get_user_bitcoin_details():
+    cursor = mysql.get_db().cursor()
+
+# get balance details
+def get_account_details(client_id):
+    cursor = mysql.get_db().cursor()
+    cursor.execute('SELECT * FROM ACC_DETAILS WHERE ClientId = %s', (client_id, ))
+    res = cursor.fetchone()
+    return list(res)
+
+# get the users details or the status based on the flag return_status
+def get_user_details(user_name, password, user_type, return_status):
+    cursor = mysql.get_db().cursor()
+
+    if not return_status:
+        cursor.execute('SELECT * FROM Users WHERE UserName = %s AND Password = %s and Type IN %s ',
+                       (user_name, password, user_type,))
+        account = cursor.fetchone()
+        return list(account)
+    else:
+        cursor.execute('SELECT Type FROM Users WHERE UserName = %s', (user_name, ))
+        status = cursor.fetchone()
+        return status
+
+
+
 #--------------------Needs to completed--------------------------------------------
 # fetch the data which need to be shown to respective user.
-def get_data(user_type):
+def get_pending_data(user_type):
     cursor = mysql.get_db().cursor()
 
     if user_type == 'user':
@@ -118,7 +145,7 @@ def get_data(user_type):
         return 'admin'
     else :
         cursor.execute('SELECT * FROM Transaction WHERE Status = %s ', ("pending", ))
-        data  = cursor.fetchall()
+        data = cursor.fetchall()
         return beautify_data_sql_response(data)
 
 # homepage/login route
@@ -129,43 +156,48 @@ def login():
     user_type = ''
     file_load=''
     data = ''
+    acc_details = []
+    account = []
 
     # check is user is already logged in
     if len(session) > 0 and session['loggedin']:
-        data = get_data(session['user_type'])
-        return render_template(session['file_redirect'], msg=session['msg'], data=data)
+        acc_details = get_account_details(session['id'])
+        membership_type = get_user_details(session['username'], '', '', True)
+        data = get_pending_data(membership_type)
+        return render_template(session['file_redirect'], msg=session['msg'], data=data, acc_details=acc_details,
+                               membership_type=membership_type)
 
     if request.method=='POST' and 'username' in request.form and 'password' in request.form and \
             ('checkuser' in request.form or 'checkadmin' in request.form or 'checktrader' in request.form):
         user_name = request.form['username']
         password = request.form['password']
         if 'checkuser' in request.form :
-            user_type = 'user'
+            user_type = ['silver','gold']
             file_load = 'index.html'
         elif 'checktrader' in request.form:
-            user_type = 'trader'
+            user_type = ['trader']
             file_load = 'trader.html'
         else:
-            user_type = 'admin'
+            user_type = ['admin']
             file_load = 'admin.html'
-
         # get data based on the user type and render that specific template
-        data = get_data(user_type)
+        data = get_pending_data(user_type)
 
-        #check if the user exists in db or not
-        cursor = mysql.get_db().cursor()
-        cursor.execute('SELECT * FROM Users WHERE UserName = %s AND Password = %s and Type = %s ',(user_name, password, user_type,))
-        account = cursor.fetchone()
+        #check if the user exists in db or no
+        account = get_user_details(user_name, password, user_type, False)
+        print(account)
         if account:
+            # get the account details associated with the user
+            acc_details = get_account_details(account[0])
+            msg = 'Logged in successfully !'
+
             #store in session
             session['loggedin'] = True
             session['id'] = account[0]
             session['username'] = account[1]
             session['file_redirect'] = file_load
-            session['user_type'] = user_type
             session['msg'] = msg
-            msg = 'Logged in successfully !'
-            return render_template(file_load, msg=msg, data=data)
+            return render_template(file_load, msg=msg, data=data, acc_details=acc_details, membership_type=account[7])
         else:
             msg = 'Incorrect username / password !'
 
@@ -178,7 +210,6 @@ def logout():
     session.pop('id', None)
     session.pop('username', None)
     session.pop('file_redirect', None)
-    session.pop('user_type', None)
     session.pop('msg', None)
     return redirect(url_for('login'))
 
