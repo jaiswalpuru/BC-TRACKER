@@ -36,9 +36,16 @@ app.config['MYSQL_DATABASE_DB'] = config['DB']
 
 mysql = MySQL(app)
 
+# returns the dictionary from byte string
+def get_json_data(req):
+    bytes_response = request.data
+    json_response = bytes_response.decode('utf8').replace("'", '"')
+    obj = json.loads(json_response)
+    return obj
+
 # return the current date time as per the specification of the db
 def get_current_datetime():
-    return datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+    return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 # will store the response of sql query in a 2d matrix and return
 def beautify_sql_response_pending_transaction(data):
@@ -299,12 +306,10 @@ def userdata(client_id):
 
     return render_template('userdata.html', msg=msg, data=data)
 
-# insert in transaction table for selling the transaction on which trader/admin can take action
-@app.route('/sell_transaction', methods=['POST'])
-def sell_transaction():
-    bytes_response = request.data
-    json_response = bytes_response.decode('utf8').replace("'", '"')
-    obj = json.loads(json_response)
+# this will insert the details in seller table regarding the details of the seller
+@app.route('/sell_bitcoin', methods=['POST'])
+def sell_bitcoin():
+    obj = get_json_data(request.data)
     client_id = obj["ClientId"]
     transaction_id = obj["TransactionId"]
     transaction_type = obj["TransactionType"]
@@ -318,7 +323,7 @@ def sell_transaction():
         commission_type = tax_rate_silver_member
 
     rate = get_current_rate()
-    commission_paid = float(bitcoin_unit_to_sold) * int(rate)/100
+    commission_paid = float(bitcoin_unit_to_sold) * float(rate)/100
 
     cursor = mysql.get_db().cursor()
     cursor.execute('INSERT INTO SELLER VALUES (%s, %s, %s, %s, %s)',
@@ -326,6 +331,31 @@ def sell_transaction():
     mysql.get_db().commit()
     return json.dumps({'success':True})
 
+# create an entry in the transaction table for the current transaction
+@app.route('/buy_bitcoin', methods=['POST'])
+def buy_bitcoin():
+    obj = get_json_data(request.data)
+    client_id = obj["ClientId"]
+    recipient_id = obj["RecipientId"]
+    transaction_id = obj["TransactionId"]
+    membership_type = obj["MembershipType"]
+    bitcoin_unit_to_buy = obj["BitcoinBuy"]
+
+    commission_type = 0
+    if membership_type == 'gold':
+        commission_type = tax_rate_gold_member
+    else:
+        commission_type = tax_rate_silver_member
+
+    rate = get_current_rate()
+    commission_paid = float(bitcoin_unit_to_buy) * float(rate)/100
+
+    cursor = mysql.get_db().cursor()
+    cursor.execute('INSERT INTO TRANSACTION VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)',
+                   (client_id, transaction_id, "BUY", get_current_datetime(), commission_type, commission_type, recipient_id, bitcoin_unit_to_buy, 'pending',))
+    mysql.get_db().commit()
+
+    return json.dumps({'success':True})
 
 # update a list of transactions which is selected by the trader
 @app.route('/update_transaction', methods=['POST'])
