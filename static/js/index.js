@@ -37,9 +37,13 @@ sell_bitcoin = (clientId, membership_type) => {
             contentType: "application/json; charset=utf-8",
             crossDomain: true,
             dataType: "json",
-            success: function (data, status, jqXHR) {
-                window.location.reload(true);
-            }, error: function (jqXHR, status) {
+            success: (data, status, jqXHR) => {
+                if (data['success'] === false) {
+                    alert("You have pending transactions left");
+                } else {
+                    window.location.reload(true);
+                }
+            }, error: (jqXHR, status) => {
                 alert('fail, you have pending transactions left.');
             }
         });
@@ -73,9 +77,13 @@ buy_bitcoin = (recipient_id, membership_type, client_id, bitcoin_val) => {
             contentType: "application/json; charset=utf-8",
             crossDomain: true,
             dataType: "json",
-            success: function (data, status, jqXHR) {
-                window.location.reload(true);
-            }, error: function (jqXHR, status) {
+            success:  (data, status, jqXHR) => {
+                if (data['success']===false) {
+                    alert("You have pending transactions left");
+                } else {
+                    window.location.reload(true);
+                }
+            }, error: (jqXHR, status) => {
                 alert('fail, you have pending transactions left.');
             }
         });

@@ -43,13 +43,13 @@ def get_tax_rate(val):
 
 # get commission rate type which is either bitcoin or fiat
 def get_commission_type(val):
-    if vall == 'fiat':
+    if val == 'fiat':
         return 'fiat'
     return 'bitcoin'
 
 # returns the dictionary from byte string
 def get_json_data(req):
-    bytes_response = request.data
+    bytes_response = req
     json_response = bytes_response.decode('utf8').replace("'", '"')
     obj = json.loads(json_response)
     return obj
@@ -80,48 +80,86 @@ def get_current_rate():
     response = requests.get("https://api.coindesk.com/v1/bpi/currentprice.json")
     return response.json()['bpi']['USD']['rate_float']
 
-
 # update transaction table based on the decision of the user
 def update_transaction_table(client_decision):
-
+    print(client_decision)
     cursor = mysql.get_db().cursor()
 
     for val in client_decision:
         if val['transaction_type'] == 'BUY':
 
-            cursor.execute('SELECT * FROM ACC_DETAILS WHERE ClientId = %s', (val['client_id'], ))
-            acc_detail = cursor.fetchone()
+            commission_rate = 0
+            client_id = int(val['client_id'])
+            recipient_id = int(val['recipient_id'])
+            commission_rate_type = val['commission_rate_type']
+            commission_paid = float(val['commission_paid'])
+            decision = val['decision']
+            bitcoin_amt = float(val['bitcoin_amt'])
+            rate_at_time_user_buy = commission_paid * 100 / bitcoin_amt
 
-            rate = get_current_rate()
-            commission = val['commission_paid']
-            amt_to_buy = val['bitcoin_amt']
-            total_amt_to_be_paid = float(commission) + (float(amt_to_buy) * float(rate))
-            if acc_detail[2] < total_amt_to_be_paid :
-                return 'error'
-            else :
-                # update the transaction table
-                cursor.execute('UPDATE TRANSACTION SET Status = %s WHERE TransactionId = %s',
-                               (val['decision'], val['transaction_id'], ))
+            # get the buyer account details
+            cursor.execute('SELECT * FROM ACC_DETAILS WHERE ClientId = %s', (client_id, ))
+            buyer_acc_detail = cursor.fetchone()
 
-                if val['decision'] == 'reject':
-                    mysql.get_db().commit()
-                    return
-                fiat_currency = float(acc_detail[2]) - float(total_amt_to_be_paid)
-                total_amt = fiat_currency + (float(amt_to_buy) * float(rate))
+            # get the seller account detail
+            cursor.execute('SELECT * FROM ACC_DETAILS WHERE ClientId = %s', (recipient_id,))
+            seller_acc_detail = cursor.fetchone()
 
-                # update the acc_details table
-                cursor.execute('UPDATE ACC_DETAILS SET FiatCurrency = %s WHERE ClientId = %s ',
-                               ( fiat_currency, val['client_id'], ))
+            #get the user bitcoin account details
+            cursor.execute('SELECT * FROM BITCOIN WHERE ClientId = %s', (client_id, ))
+            buyer_bitcoin_detail = cursor.fetchone()
 
-                # update the bitcoin table
-                cursor.execute('SELECT * FROM BITCOIN WHERE ClientId = %s',(val['client_id'], ))
-                client_bitcoin_detail = cursor.fetchone()
-                cursor.execute('UPDATE BITCOIN SET Units = %s WHERE ClientId = %s',
-                               (float(client_bitcoin_detail[1])+float(val['bitcoin_amt']), val['client_id']))
-                mysql.get_db().commit()
-        else:
-            print("Sell")
-    return "hello"
+            # get the seller bitcoin detail
+            cursor.execute('SELECT * FROM BITCOIN WHERE ClientId = %s', (recipient_id,))
+            seller_bitcoin_detail = cursor.fetchone()
+
+            # get the commission paid by the seller
+            cursor.execute('SELECT * FROM Seller WHERE ClientId = %s', (recipient_id, ))
+            seller_log = cursor.fetchone()
+
+            seller_commission_rate_type = seller_log[5]
+            seller_commission_paid = float(seller_log[3])
+            seller_bitcoin_sell_amt = float(seller_log[1])
+
+            if decision == 'completed':
+                if commission_rate_type == 'fiat' and seller_commission_rate_type == 'fiat':
+                    #client = fiat and seller = fiat
+
+                    # update buyer account balance
+                    cursor.execute('UPDATE ACC_DETAILS SET FiatCurrency = %s WHERE ClientId = %s',
+                                   (buyer_acc_detail[1]-commission_paid - (bitcoin_amt * get_current_rate()), client_id))
+                    print(buyer_acc_detail[1], commission_paid, (bitcoin_amt*get_current_rate()))
+
+                    # update seller account balance
+                    cursor.execute('UPDATE ACC_DETAILS SET FiatCurrency = %s WHERE ClientId = %s',
+                                   (seller_acc_detail[1]-seller_commission_paid+(bitcoin_amt*get_current_rate()), recipient_id))
+
+                    if float(seller_bitcoin_detail[1]) - bitcoin_amt == 0:
+                        cursor.execute('DELETE FROM Seller WHERE ClientId = %s',(recipient_id, ))
+                    else :
+                        cursor.execute('UPDATE Seller SET Units = %s WHERE ClientId = %s',
+                                       (seller_bitcoin_sell_amt-bitcoin_amt, recipient_id, ))
+
+                    cursor.execute('UPDATE BITCOIN SET Units = %s WHERE ClientId = %s',
+                                   (float(buyer_bitcoin_detail[1])+bitcoin_amt, client_id))
+                    cursor.execute('UPDATE BITCOIN SET Units = %s WHERE ClientId = %s',
+                                   (float(seller_bitcoin_detail[1])-bitcoin_amt, recipient_id))
+
+                elif commission_rate == 'fiat' and seller_commission_rate_type == 'bitcoin':
+                    # client = fiat and seller = bitcoin
+                    print("fiat", "bitcoin")
+                elif commission_rate == 'bitcoin' and seller_commission_rate_type == 'fiat':
+                    # client = bitcoin and seller = fiat
+                    print("bitcoin, fiat")
+                else:
+                    # client = bitcoin and seller = bitcoin
+                    # get the units of the bitcoin which is part of the tax as the time of bought
+                    print("bitcoin", "bitcoin")
+
+            cursor.execute('UPDATE Transaction SET Status = %s WHERE ClientId = %s',(decision, client_id, ) )
+
+            mysql.get_db().commit()
+    return True
 
 #--------------------Needs to completed--------------------------------------------
 # fetch the data which need to be shown to respective user.
@@ -349,6 +387,14 @@ def sell_bitcoin():
     commission_paid = float(bitcoin_unit_to_sold) * float(rate)/100
 
     cursor = mysql.get_db().cursor()
+
+    # first check if the user is already exists in the selling table, if yes then he won't be allowed to do thee transaction
+    cursor.execute('SELECT * FROM SELLER WHERE ClientId = %s', (client_id, ))
+    past_history = cursor.fetchall()
+
+    if past_history:
+        return json.dumps({'success': False})
+
     cursor.execute('INSERT INTO SELLER VALUES (%s, %s, %s, %s, %s, %s)',
                    (client_id, bitcoin_unit_to_sold, get_current_datetime(), commission_paid, commission_type, commission_rate_type))
     mysql.get_db().commit()
@@ -371,7 +417,7 @@ def buy_bitcoin():
     commission_paid = float(bitcoin_unit_to_buy) * float(rate)/100
 
     cursor = mysql.get_db().cursor()
-    cursor.execute('SELECT * FROM TRANSACTION WHERE ClientId = %s AND RecipientId = %s', (client_id, recipient_id))
+    cursor.execute('SELECT * FROM TRANSACTION WHERE ClientId = %s AND RecipientId = %s AND Status = %s ', (client_id, recipient_id,"pending", ))
     past_history = cursor.fetchall()
 
     if past_history:
@@ -392,6 +438,7 @@ def update_transaction():
     # store the client_id, transaction_id and decision in a list of dictionary
     for client_transaction in request.form:
         temp = client_transaction.split("+")
+        print(temp)
         """
         clientid=temp[0], transactionid=temp[1], transactiontype=temp[2], commissionpaid=temp[3], commissiontype=temp[4], 
         recipientid=temp[5], bitcoinamt=temp[6]
@@ -400,12 +447,12 @@ def update_transaction():
         t['client_id'] = temp[0]
         t['transaction_id'] = temp[1]
         t['transaction_type'] = temp[2]
-        t['commission_paid'] = temp[4]
-        t['commission_type'] = temp[5]
-        t['recipient_id'] = temp[6]
+        t['commission_paid'] = temp[3]
+        t['commission_type'] = temp[4]
+        t['recipient_id'] = temp[5]
         t['decision'] = "completed" if request.form[client_transaction]=="accept" else "reject"
-        t['bitcoin_amt'] = temp[7]
-        t['commission_rate_type'] = temp[9]
+        t['bitcoin_amt'] = temp[6]
+        t['commission_rate_type'] = temp[7]
         client_decision.append(t)
     update_transaction_table(client_decision)
 
