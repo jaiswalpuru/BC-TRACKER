@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS `TRANSACTION` (
     `RecipientId` int(10) NOT NULL,
     `BitCoinAmount` FLOAT(10) NOT NULL,
     `Status` varchar(20) NOT NULL,
+    `CommissionRateType` varchar(50) NOT NULL,
     PRIMARY KEY (`TransactionId`),
     FOREIGN KEY (ClientId) REFERENCES USERS(ClientId)
 )Engine=InnoDB DEFAULT CHARSET=utf8;
@@ -67,10 +68,15 @@ CREATE TABLE IF NOT EXISTS `SELLER` (
 	`Date` TIMESTAMP NOT NULL,
 	`CommisionPaid` FLOAT(10) NOT NULL,
     `CommisionType` FLOAT(10) NOT NULL,
+    `CommissionRateType` varchar(50) NOT NULL,
     PRIMARY KEY(`ClientId`),
     FOREIGN KEY (ClientId) REFERENCES USERS(ClientId)
 )Engine=InnoDB DEFAULT CHARSET=utf8;
 
+
+Select * from Transaction;
+select *
+from seller;
 
 -- INSERT INTO `USERS` (`UserName`, `FirstName`, `LastName`,`Password`,`Phone`, `Email`, `Type`)
 -- VALUES ('Admin', 'first_admin', 'last_admin', '@dm1n', '4699272570','iamadmin@gmail.com', 'admin');
@@ -103,4 +109,9 @@ VALUES (5, 'random3', 'BUY', now(), 5500, 'Currency', 8, 'completed');
 INSERT INTO `Transaction` (`ClientId`,`TransactionId`,`TransactionType`, `Date`, `CommisionPaid`, `CommisionType`, `RecipientId`, `Status`) 
 VALUES (5, 'random5', 'BUY', now(), 5500, 'Currency', 9, 'completed');
 
-Select * from Transaction;
+Select * from T;
+
+Select * from users;
+
+select *
+from Transaction;

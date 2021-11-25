@@ -19,10 +19,6 @@ cache_config = {
 app.config.from_mapping(cache_config)
 cache = Cache(app)
 
-# tax rate based on membership type
-tax_rate_gold_member = 5.0
-tax_rate_silver_member = 7.0
-
 # load the config values from yaml file
 with open("config.yaml", "r") as stream:
     data_loaded = yaml.safe_load(stream)
@@ -35,6 +31,21 @@ app.config['MYSQL_DATABASE_PASSWORD'] = config['PASSWORD']
 app.config['MYSQL_DATABASE_DB'] = config['DB']
 
 mysql = MySQL(app)
+
+# get the tax rate based on the type of the user
+def get_tax_rate(val):
+    # tax rate based on membership type
+    tax_rate_gold_member = 5.0
+    tax_rate_silver_member = 7.0
+    if val == 'gold':
+        return tax_rate_gold_member
+    return tax_rate_silver_member
+
+# get commission rate type which is either bitcoin or fiat
+def get_commission_type(val):
+    if vall == 'fiat':
+        return 'fiat'
+    return 'bitcoin'
 
 # returns the dictionary from byte string
 def get_json_data(req):
@@ -128,6 +139,15 @@ def get_pending_data(user_type, client_id=0):
         data = cursor.fetchall()
         return beautify_sql_response_pending_transaction(data)
 
+# get pending transaction which is not is not of the current user
+def get_pending_data_except_current_user(client_id):
+    cursor = mysql.get_db().cursor()
+
+    cursor.execute('SELECT u.UserName, s.Units, s.ClientId  FROM Seller s JOIN Users u ON s.ClientId=u.ClientId'
+                   ' WHERE s.ClientId != %s ', (client_id, ))
+    data = cursor.fetchall()
+    return beautify_sql_response_pending_transaction(data)
+
 # get details of bitcoin
 def get_user_bitcoin_details(client_id):
     cursor = mysql.get_db().cursor()
@@ -177,15 +197,18 @@ def login():
     data = ''
     acc_details = []
     account = []
+    pending_transaction = ''
 
     # check is user is already logged in
     if len(session) > 0 and session['loggedin']:
         acc_details = get_account_details(session['id'])
         membership_type = get_user_details(session['username'], '', '', True)
         data = get_pending_data(membership_type,session['id'])
+        pending_transaction = get_pending_data_except_current_user(session['id'])
         units = get_user_bitcoin_details(session['id'])
         return render_template(session['file_redirect'], msg=session['msg'], data=data, acc_details=acc_details,
-                               membership_type=membership_type, bitcoin_unit=units, bitcoin_rate=get_current_rate())
+                               membership_type=membership_type, bitcoin_unit=units, bitcoin_rate=get_current_rate(),
+                               pending_transaction=pending_transaction)
 
     if request.method=='POST' and 'username' in request.form and 'password' in request.form and \
             ('checkuser' in request.form or 'checkadmin' in request.form or 'checktrader' in request.form):
@@ -215,6 +238,9 @@ def login():
             # get data based on the user type and render that specific template
             data = get_pending_data(account[7], account[0])
 
+            # get pending transaction which are not of the current user
+            pending_transaction = get_pending_data_except_current_user(account[0])
+
             #store in session
             session['loggedin'] = True
             session['id'] = account[0]
@@ -222,7 +248,8 @@ def login():
             session['file_redirect'] = file_load
             session['msg'] = msg
             return render_template(file_load, msg=msg, data=data, acc_details=acc_details,
-                                   membership_type=account[7], bitcoin_unit=units, bitcoin_rate=get_current_rate())
+                                   membership_type=account[7], bitcoin_unit=units, bitcoin_rate=get_current_rate(),
+                                   pending_transaction=pending_transaction)
         else:
             msg = 'Incorrect username / password !'
 
@@ -276,7 +303,6 @@ def register():
 
             # inserting dummy data in acc and bitcoin table
             bitcoin_rate = get_current_rate()
-            total_amt = 100000 + (2 * bitcoin_rate)
             cursor.execute('INSERT INTO ACC_DETAILS VALUES (%s, %s)', (client_id, '100000'))
             cursor.execute('INSERT INTO BITCOIN VALUES (%s, %s)',( client_id, 2))
             mysql.get_db().commit()
@@ -311,23 +337,20 @@ def userdata(client_id):
 def sell_bitcoin():
     obj = get_json_data(request.data)
     client_id = obj["ClientId"]
-    transaction_id = obj["TransactionId"]
-    transaction_type = obj["TransactionType"]
+    # transaction_id = obj["TransactionId"]
+    # transaction_type = obj["TransactionType"]
     membership_type = obj["MembershipType"]
     bitcoin_unit_to_sold = obj["BitcoinSell"]
 
-    commission_type = 0
-    if membership_type == 'gold':
-        commission_type = tax_rate_gold_member
-    else:
-        commission_type = tax_rate_silver_member
+    commission_rate_type = get_commission_type(obj["CommissionType"])
+    commission_type = get_tax_rate(membership_type)
 
     rate = get_current_rate()
     commission_paid = float(bitcoin_unit_to_sold) * float(rate)/100
 
     cursor = mysql.get_db().cursor()
-    cursor.execute('INSERT INTO SELLER VALUES (%s, %s, %s, %s, %s)',
-                   (client_id, bitcoin_unit_to_sold, get_current_datetime(), commission_paid, commission_type))
+    cursor.execute('INSERT INTO SELLER VALUES (%s, %s, %s, %s, %s, %s)',
+                   (client_id, bitcoin_unit_to_sold, get_current_datetime(), commission_paid, commission_type, commission_rate_type))
     mysql.get_db().commit()
     return json.dumps({'success':True})
 
@@ -341,18 +364,22 @@ def buy_bitcoin():
     membership_type = obj["MembershipType"]
     bitcoin_unit_to_buy = obj["BitcoinBuy"]
 
-    commission_type = 0
-    if membership_type == 'gold':
-        commission_type = tax_rate_gold_member
-    else:
-        commission_type = tax_rate_silver_member
+    commission_rate_type = get_commission_type(obj["CommissionType"])
+    commission_type = get_tax_rate(membership_type)
 
     rate = get_current_rate()
     commission_paid = float(bitcoin_unit_to_buy) * float(rate)/100
 
     cursor = mysql.get_db().cursor()
-    cursor.execute('INSERT INTO TRANSACTION VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)',
-                   (client_id, transaction_id, "BUY", get_current_datetime(), commission_type, commission_type, recipient_id, bitcoin_unit_to_buy, 'pending',))
+    cursor.execute('SELECT * FROM TRANSACTION WHERE ClientId = %s AND RecipientId = %s', (client_id, recipient_id))
+    past_history = cursor.fetchall()
+
+    if past_history:
+        return json.dumps({'success':False})
+
+    cursor.execute('INSERT INTO TRANSACTION VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
+                   (client_id, transaction_id, "BUY", get_current_datetime(), commission_paid,
+                    commission_type, recipient_id, bitcoin_unit_to_buy, 'pending', commission_rate_type,))
     mysql.get_db().commit()
 
     return json.dumps({'success':True})
@@ -373,11 +400,12 @@ def update_transaction():
         t['client_id'] = temp[0]
         t['transaction_id'] = temp[1]
         t['transaction_type'] = temp[2]
-        t['commission_paid'] = temp[3]
-        t['commission_type'] = temp[4]
-        t['recipient_id'] = temp[5]
+        t['commission_paid'] = temp[4]
+        t['commission_type'] = temp[5]
+        t['recipient_id'] = temp[6]
         t['decision'] = "completed" if request.form[client_transaction]=="accept" else "reject"
-        t['bitcoin_amt'] = temp[6]
+        t['bitcoin_amt'] = temp[7]
+        t['commission_rate_type'] = temp[9]
         client_decision.append(t)
     update_transaction_table(client_decision)
 

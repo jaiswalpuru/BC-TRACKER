@@ -40,6 +40,10 @@
                         <p>Current Membership : {{ membership_type }} </p>
                     </li>
                     <hr>
+                    <h4>Choose your commision type</h4>
+                    <button class="btn btn-outline-dark" onclick="updateCommission('fiat')">Fiat Currency</button>
+                    <button class="btn btn-outline-dark" onclick="updateCommission('bitcoin')">Bitcoin</button>
+                    <hr>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
                     </li>
@@ -48,115 +52,135 @@
         </div>
     </div>
 </nav>
-
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-4">
-            <h3>Sell your Bitcoin to other traders! <br><br> Click the button below to let people know you mean
-                business ! <br><br></h3>
-            <hr>
-            <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal"
-                    data-bs-target="#sellModal">Sell!</button>
-        </div>
-        <div class="col-md-8">
-            <h3>Your Pending Transactions</h3>
-            <hr>
-            <br>
-            <table class="table">
-                <thead>
-                <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">ClientId</th>
-                    <th scope="col">TransactionId</th>
-                    <th scope="col">Transaction Type</th>
-                    <th scope="col">Date</th>
-                    <th scope="col">Commission Paid</th>
-                    <th scope="col">Commission Type</th>
-                    <th scope="col">RecipientId</th>
-                    <th scope="col">BitCoinAmt</th>
-                    <th scope="col">Status</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for d in data %}
-                <tr id="{{ d[0] }}">
-                    <th scope="row">{{ loop.index }}</th>
-                    <td>{{ d[0] }}</td>
-                    <td>{{ d[1] }}</td>
-                    <td>{{ d[2] }}</td>
-                    <td>{{ d[3] }}</td>
-                    <td>{{ d[4] }}</td>
-                    <td>{{ d[5] }}</td>
-                    <td>{{ d[6] }}</td>
-                    <td>{{ d[7] }}</td>
-                    <td>{{ d[8] }}</td>
-                </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card" style="width: 18rem;">
-                <img src="../static/images/bitcoin.png" class="card-img-top" alt="...">
-                <div class="card-body">
-                    <h5 class="card-title">Buy Bitcoin from the Ether!</h5>
-                    <p class="card-text">Want to stock up on the bitcoin out there ? Now you can!</p>
-                    <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal"
-                            data-bs-target="#exampleModal2">Buy!</button>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-8">
-            <h3>Buy Bitcoin from Fellow Traders!</h3>
-            <hr>
-            <br>
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item">
-                </li>
-                <li class="list-group-item"><button type="button" class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#exampleModal3">User Name | No of bit_coins </button>
-                </li>
-                <li class="list-group-item"><button type="button" class="btn btn-outline-dark"
-                                                    data-bs-toggle="modal" data-bs-target="#exampleModal3">User Name | No of bit_coins </button>
-                </li>
-                <li class="list-group-item"><button type="button" class="btn btn-outline-dark"
-                                                    data-bs-toggle="modal" data-bs-target="#exampleModal3">User Name | No of bit_coins </button>
-                </li>
-            </ul>
-        </div>
-    </div>
-</div>
-
-<!-- Modal 1 -->
-<div class="modal fade" id="sellModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" >Let the users know how much you are willing to sell!</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <ul class="list-group">
-                    <li class="list-group-item">Current Bit Coin Rate : {{ bitcoin_rate }}</li>
-                    <li class="list-group-item">Total Fiat Currency : {{ acc_details[1] }}</li>
-                    <li class="list-group-item" id="bitcoin_units_owned">Total Bitcoin Units : {{ bitcoin_unit }}</li>
-                </ul>
-                <br>
+            <div class="col-md-4">
+                <h3>Sell your Bitcoin to other traders! <br><br> Click the button below to let people know you mean
+                    business ! <br><br></h3>
                 <hr>
-                <div class="mb-3">
-                    <label for="sell_bitcoin_value" class="form-label">Enter the bitcoin amount to sell</label>
-                    <input type="text" class="form-control" id="sell_bitcoin_value" >
+                <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal"
+                        data-bs-target="#sellModal">Sell!</button>
+            </div>
+            <div class="col-md-8">
+                <h3>Your Pending Transactions</h3>
+                <hr>
+                <br>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">ClientId</th>
+                        <th scope="col">TransactionId</th>
+                        <th scope="col">Transaction Type</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Commission Paid</th>
+                        <th scope="col">Commission Type</th>
+                        <th scope="col">RecipientId</th>
+                        <th scope="col">BitCoinAmt</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">CommissionRateType</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for d in data %}
+                    <tr id="{{ d[0] }}">
+                        <th scope="row">{{ loop.index }}</th>
+                        <td>{{ d[0] }}</td>
+                        <td>{{ d[1] }}</td>
+                        <td>{{ d[2] }}</td>
+                        <td>{{ d[3] }}</td>
+                        <td>{{ d[4] }}</td>
+                        <td>{{ d[5] }}</td>
+                        <td>{{ d[6] }}</td>
+                        <td>{{ d[7] }}</td>
+                        <td>{{ d[8] }}</td>
+                        <td>{{ d[9] }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <br>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card" style="width: 18rem;">
+                    <img src="../static/images/bitcoin.png" class="card-img-top" alt="...">
+                    <div class="card-body">
+                        <h5 class="card-title">Buy Bitcoin from the Ether!</h5>
+                        <p class="card-text">Want to stock up on the bitcoin out there ? Now you can!</p>
+                        <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal"
+                                data-bs-target="#exampleModal2">Buy!</button>
+                    </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick=sell_bitcoin(`{{session['id']}}`,`{{membership_type}}`)>Submit</button>
+            <div class="col-md-8">
+                <h3>Buy Bitcoin from Fellow Traders!</h3>
+                <ul class="list-group list-group-flush">
+                    {% for d in pending_transaction %}
+                    <li class="list-group-item">
+                        <button type="button" class="btn btn-outline-dark"
+                                data-bs-toggle="modal" data-bs-target="#buy_user_Modal">{{ d[0] }} | {{ d[1] }} </button>
+                        <!-- Modal 1 -->
+                        <div class="modal fade" id="buy_user_Modal" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" >{{ d[0] }} wants to sell {{ d[1] }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <ul class="list-group">
+                                            <li class="list-group-item">Current Bitcoin Rate : {{ bitcoin_rate }}</li>
+                                            <li class="list-group-item">Total Fiat Currency : {{ acc_details[1] }}</li>
+                                            <li class="list-group-item">Total $ value for bitcoin : {{ bitcoin_rate * acc_details[1] }}</li>
+                                        </ul>
+                                        <hr>
+                                        <div class="mb-3">
+                                            <label for="buy_bitcoin_value" class="form-label">Number of bitcoins you want to buy</label>
+                                            <input type="text" class="form-control" id="buy_bitcoin_value" >
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="button" class="btn btn-primary" onclick=buy_bitcoin(`{{session['id']}}`,`{{membership_type}}`,`{{d[2]}}`,`{{d[1]}}`)>Submit</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
     </div>
-</div>
 
+    <!-- Modal 2 -->
+    <div class="modal fade" id="sellModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" >Let the users know how much you are willing to sell!</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-group">
+                        <li class="list-group-item">Current Bit Coin Rate : {{ bitcoin_rate }}</li>
+                        <li class="list-group-item">Total Fiat Currency : {{ acc_details[1] }}</li>
+                        <li class="list-group-item" id="bitcoin_units_owned">Total Bitcoin Units : {{ bitcoin_unit }}</li>
+                    </ul>
+                    <hr>
+                    <div class="mb-3">
+                        <label for="sell_bitcoin_value" class="form-label">Enter the bitcoin amount to sell</label>
+                        <input type="text" class="form-control" id="sell_bitcoin_value" >
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick=sell_bitcoin(`{{session['id']}}`,`{{membership_type}}`)>Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
