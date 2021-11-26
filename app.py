@@ -209,11 +209,9 @@ def update_transaction_table(client_decision):
                                                     seller_log[4]) / 100),
                                         recipient_id,))
 
+            cursor.execute('UPDATE Transaction SET Status = %s WHERE ClientId = %s',(decision, client_id, ) )
 
-
-            # cursor.execute('UPDATE Transaction SET Status = %s WHERE ClientId = %s',(decision, client_id, ) )
-
-            # mysql.get_db().commit()
+            mysql.get_db().commit()
     return True
 
 #--------------------Needs to completed--------------------------------------------
