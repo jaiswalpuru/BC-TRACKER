@@ -127,6 +127,11 @@ def update_transaction_table(client_decision):
             # commission rate for seller at the time of selling
             seller_bitcoin_commission_rate = (seller_commission_paid * 100)/(int(seller_log[4])*bitcoin_amt)
 
+            commission_rate_in_bitcoin = commission_paid / buyer_bitcoin_commission_rate
+            seller_rate_in_bitcoin = seller_commission_paid / seller_bitcoin_commission_rate
+            commission_rate_in_fiat_buyer = 0
+            commission_rate_in_fiat_seller = 0
+
             if decision == 'completed':
                 if commission_rate_type == 'fiat' and seller_commission_rate_type == 'fiat':
                     #client = fiat and seller = fiat
@@ -164,10 +169,6 @@ def update_transaction_table(client_decision):
 
                 else:
                     # client = bitcoin and seller = bitcoin
-                    commission_rate_in_bitcoin = commission_paid/buyer_bitcoin_commission_rate
-                    seller_rate_in_bitcoin = seller_commission_paid/seller_bitcoin_commission_rate
-                    commission_rate_in_fiat_buyer = 0
-                    commission_rate_in_fiat_seller = 0
 
                     # buyer
                     if commission_rate_in_bitcoin < float(buyer_bitcoin_detail[1]) :
