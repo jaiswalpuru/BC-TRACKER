@@ -95,7 +95,7 @@ def update_transaction_table(client_decision):
             commission_paid = float(val['commission_paid'])
             decision = val['decision']
             bitcoin_amt = float(val['bitcoin_amt'])
-            rate_at_time_user_buy = commission_paid * 100 / bitcoin_amt
+            rate = float(val['commission_type'])
 
             # get the buyer account details
             cursor.execute('SELECT * FROM ACC_DETAILS WHERE ClientId = %s', (client_id, ))
@@ -121,24 +121,33 @@ def update_transaction_table(client_decision):
             seller_commission_paid = float(seller_log[3])
             seller_bitcoin_sell_amt = float(seller_log[1])
 
+            # commission rate for buyer at the time of buying
+            buyer_bitcoin_commission_rate = (commission_paid * 100)/(rate * bitcoin_amt)
+
+            # commission rate for seller at the time of selling
+            seller_bitcoin_commission_rate = (seller_commission_paid * 100)/(int(seller_log[4])*bitcoin_amt)
+
             if decision == 'completed':
                 if commission_rate_type == 'fiat' and seller_commission_rate_type == 'fiat':
                     #client = fiat and seller = fiat
 
-                    # update buyer account balance
+                    # buyer
                     cursor.execute('UPDATE ACC_DETAILS SET FiatCurrency = %s WHERE ClientId = %s',
                                    (buyer_acc_detail[1]-commission_paid - (bitcoin_amt * get_current_rate()), client_id))
-                    print(buyer_acc_detail[1], commission_paid, (bitcoin_amt*get_current_rate()))
 
-                    # update seller account balance
+                    # seller
                     cursor.execute('UPDATE ACC_DETAILS SET FiatCurrency = %s WHERE ClientId = %s',
                                    (seller_acc_detail[1]-seller_commission_paid+(bitcoin_amt*get_current_rate()), recipient_id))
 
                     if float(seller_bitcoin_detail[1]) - bitcoin_amt == 0:
                         cursor.execute('DELETE FROM Seller WHERE ClientId = %s',(recipient_id, ))
                     else :
-                        cursor.execute('UPDATE Seller SET Units = %s WHERE ClientId = %s',
-                                       (seller_bitcoin_sell_amt-bitcoin_amt, recipient_id, ))
+                        # calculate the bitcoin amount and update the seller table
+                        cursor.execute('UPDATE Seller SET Units = %s, CommisionPaid = %s WHERE ClientId = %s',
+                                       (seller_bitcoin_sell_amt-bitcoin_amt,
+                                        seller_commission_paid - ((seller_bitcoin_sell_amt-bitcoin_amt)*
+                                                                  seller_bitcoin_commission_rate * int(seller_log[4])/100),
+                                        recipient_id, ))
 
                     cursor.execute('UPDATE BITCOIN SET Units = %s WHERE ClientId = %s',
                                    (float(buyer_bitcoin_detail[1])+bitcoin_amt, client_id))
@@ -146,19 +155,64 @@ def update_transaction_table(client_decision):
                                    (float(seller_bitcoin_detail[1])-bitcoin_amt, recipient_id))
 
                 elif commission_rate == 'fiat' and seller_commission_rate_type == 'bitcoin':
-                    # client = fiat and seller = bitcoin
-                    print("fiat", "bitcoin")
+
+                    print("Gere")
+
                 elif commission_rate == 'bitcoin' and seller_commission_rate_type == 'fiat':
                     # client = bitcoin and seller = fiat
                     print("bitcoin, fiat")
+
                 else:
                     # client = bitcoin and seller = bitcoin
-                    # get the units of the bitcoin which is part of the tax as the time of bought
-                    print("bitcoin", "bitcoin")
+                    commission_rate_in_bitcoin = commission_paid/buyer_bitcoin_commission_rate
+                    seller_rate_in_bitcoin = seller_commission_paid/seller_bitcoin_commission_rate
+                    commission_rate_in_fiat_buyer = 0
+                    commission_rate_in_fiat_seller = 0
 
-            cursor.execute('UPDATE Transaction SET Status = %s WHERE ClientId = %s',(decision, client_id, ) )
+                    # buyer
+                    if commission_rate_in_bitcoin < float(buyer_bitcoin_detail[1]) :
+                        cursor.execute('UPDATE BITCOIN SET Units = %s WHERE ClientId = %s',
+                                       (float(buyer_bitcoin_detail[1])-commission_rate_in_bitcoin+bitcoin_amt, client_id, ))
+                    else :
+                        left_bitcoin_buyer = commission_rate_in_bitcoin-float(buyer_bitcoin_detail[1])
+                        commission_rate_in_fiat_buyer = left_bitcoin_buyer * buyer_bitcoin_commission_rate
+                        cursor.execute('UPDATE BITCOIN SET Units = %s WHERE ClientId = %s',
+                                       (bitcoin_amt, client_id, ))
+                        cursor.execute('UPDATE ACC_DETAILS SET FiatCurrency = %s WHERE ClientId = %s',
+                                       (buyer_acc_detail[1]-commission_rate_in_fiat_buyer, client_id, ))
 
-            mysql.get_db().commit()
+
+                    #seller
+                    cursor.execute('UPDATE BITCOIN SET Units = %s WHERE ClientId = %s',
+                                    (float(seller_bitcoin_detail[1]) - bitcoin_amt, recipient_id,))
+
+                    if seller_rate_in_bitcoin < (float(seller_bitcoin_detail[1])-bitcoin_amt) :
+                        cursor.execute('UPDATE BITCOIN SET Units = %s WHERE ClientId = %s',
+                                       (float(seller_bitcoin_detail[1])-bitcoin_amt-seller_rate_in_bitcoin), recipient_id, )
+                    else :
+                        left_bitcoin_seller = seller_rate_in_bitcoin-float(seller_bitcoin_detail[1])
+                        commission_rate_in_fiat_seller = left_bitcoin_seller * seller_bitcoin_commission_rate
+                        cursor.execute('UPDATE BITCOIN SET Units = %s AND ClientId = %s',
+                                       (0, recipient_id, ))
+                        cursor.execute('UPDATE ACC_DETAILS SET FiatCurrency = %s AND ClientId = %s',
+                                       (float(seller_acc_detail[1])-commission_rate_in_fiat_seller, recipient_id, ))
+
+                    if float(seller_bitcoin_detail[1]) - bitcoin_amt == 0:
+                        cursor.execute('DELETE FROM Seller WHERE ClientId = %s',(recipient_id, ))
+                    else :
+                        # calculate the bitcoin amount and update the seller table
+                        cursor.execute('UPDATE Seller SET Units = %s, CommisionPaid = %s WHERE ClientId = %s',
+                                       (seller_bitcoin_sell_amt - bitcoin_amt,
+                                        seller_commission_paid - ((seller_bitcoin_sell_amt - bitcoin_amt) *
+                                                                  seller_bitcoin_commission_rate * int(
+                                                    seller_log[4]) / 100),
+                                        recipient_id,))
+
+
+
+            # cursor.execute('UPDATE Transaction SET Status = %s WHERE ClientId = %s',(decision, client_id, ) )
+
+            # mysql.get_db().commit()
     return True
 
 #--------------------Needs to completed--------------------------------------------
