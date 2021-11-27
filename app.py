@@ -336,6 +336,21 @@ def credit_bitcoin():
     else:
         return json.dumps({'success' : False})
 
+# debit bitcoin from users account
+@app.route("/debit_bitcoin")
+def debit_bitcoin():
+    data = get_json_data(request.data)
+    client_id = session['id']
+    bitcoin_amt = data['curr_bitcoin']
+    bitcoin_debit = data['bitcoin']
+
+    if bitcoin_debit > bitcoin_amt:
+        return json.dumps({'success':False})
+
+    if update_user_bitcoin_amt(client_id,bitcoin_amt-bitcoin_debit):
+        return redirect(url_for('login'))
+    else:
+        return json.dumps({'success':False})
 
 # homepage/login route
 @app.route("/")
