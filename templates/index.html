@@ -45,6 +45,11 @@
                     <button class="btn btn-outline-dark" onclick="updateCommission('bitcoin')">Bitcoin</button>
                     <hr>
                     <li class="nav-item">
+                        <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal"
+                                data-bs-target="#managemoney">Manage Fiat Money</button>
+                    </li>
+                    <hr>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
                     </li>
                 </ul>
@@ -182,5 +187,40 @@
             </div>
         </div>
     </div>
+
+    <!-- Manage money Modal -->
+    <div class="modal fade" id="managemoney" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="list-group-item">Manage your accouts fiat money!
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-group">
+                        <li class="list-group-item">Current Bit Coin Rate : {{ bitcoin_rate }}</li>
+                        <li class="list-group-item">Total Fiat Currency : {{ acc_details[1] }}</li>
+                    </ul>
+                    <br>
+                    <hr>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" placeholder="Enter amount you want to move" aria-label="Text input with dropdown button">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Choose Transaction</button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                          <li><a class="dropdown-item" href="#">Debit</a></li>
+                          <li><a class="dropdown-item" href="#">Credit</a></li>
+                        </ul>
+                      </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 </body>
 </html>

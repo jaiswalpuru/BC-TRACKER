@@ -91,7 +91,7 @@ VALUES (5, 'random1', 'BUY', now(), 3992.972, 7, 7, '1','pending');
 
 Select * from ACC_DETAILS;
 
-
+Select * from BITCOIN;
 Select * from TRANSACTION;
 Select * from Seller;
 
@@ -109,7 +109,6 @@ VALUES (5, 'random3', 'BUY', now(), 5500, 'Currency', 8, 'completed');
 INSERT INTO `Transaction` (`ClientId`,`TransactionId`,`TransactionType`, `Date`, `CommisionPaid`, `CommisionType`, `RecipientId`, `Status`) 
 VALUES (5, 'random5', 'BUY', now(), 5500, 'Currency', 9, 'completed');
 
-Select * from T;
 
 Select * from users;
 

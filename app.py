@@ -47,6 +47,18 @@ def get_commission_type(val):
         return 'fiat'
     return 'bitcoin'
 
+# to update the user account balance
+def update_acc_balance(client_id, balance):
+    updated: Bool = False
+    cursor = mysql.get_db().cursor()
+    try:
+        cursor.execute('UPDATE ACC_DETAILS SET FiatCurrency = %s WHERE ClientId= %s ', (balance, client_id, ))
+        mysql.get_db().commit()
+        updated = True
+    finally:
+        return updated
+
+
 # returns the dictionary from byte string
 def get_json_data(req):
     bytes_response = req
@@ -278,6 +290,19 @@ def get_user_details(user_name, password, user_type, return_status):
 def make_session_permanent():
     app.permanent_session_lifetime = datetime.timedelta(minutes=5)
 
+# update user account balance
+@app.route("/update_balance")
+def update_balance():
+    data = get_json_data(request.data)
+    client_id = session['id']
+    fiat_update_balance = data['balance']
+    fiat_balance = data['cur_balance']
+    if  update_acc_balance(client_id, fiat_balance+fiat_update_balance):
+        return redirect(url_for('login'))
+    else :
+        return json.dumps({'success':True})
+
+
 # homepage/login route
 @app.route("/")
 @app.route("/login", methods=['GET','POST'])
@@ -418,7 +443,7 @@ def userdata(client_id):
     data = cursor.fetchall()
 
     # if the length of data fetched from sql is zero, this means that the user is trading for the first time
-    if len(data)==0:
+    if len(data) == 0:
         msg='This is the first transaction'
 
     return render_template('userdata.html', msg=msg, data=data)
