@@ -41,18 +41,23 @@ def get_tax_rate(val):
         return tax_rate_gold_member
     return tax_rate_silver_member
 
-# get commission rate type which is either bitcoin or fiat
-def get_commission_type(val):
-    if val == 'fiat':
-        return 'fiat'
-    return 'bitcoin'
-
 # to update the user account balance
 def update_acc_balance(client_id, balance):
     updated = False
     cursor = mysql.get_db().cursor()
     try:
         cursor.execute('UPDATE ACC_DETAILS SET FiatCurrency = %s WHERE ClientId= %s ', (balance, client_id, ))
+        mysql.get_db().commit()
+        updated = True
+    finally:
+        return updated
+
+# update bitcoin amount
+def update_user_bitcoin_amt(client_id, bitcoin):
+    updated = False
+    cursor = mysql.get_db().cursor()
+    try:
+        cursor.execute('UPDATE BITCOIN SET Units = %s WHERE ClientId = %s', (bitcoin, client_id, ))
         mysql.get_db().commit()
         updated = True
     finally:
@@ -318,6 +323,20 @@ def debit_balance():
     else:
         return json.dumps({'success': False})
 
+# credit bitcoin into users account
+@app.route("/credit_bitcoin")
+def credit_bitcoin():
+    data = get_json_data(request.data)
+    client_id = session['id']
+    bitcoin_amt = data['curr_bitcoin']
+    bitcoin_credit = data['bitcoin']
+
+    if update_user_bitcoin_amt(client_id, bitcoin_amt+bitcoin_credit):
+        return redirect(url_for('login'))
+    else:
+        return json.dumps({'success' : False})
+
+
 # homepage/login route
 @app.route("/")
 @app.route("/login", methods=['GET','POST'])
@@ -473,7 +492,7 @@ def sell_bitcoin():
     membership_type = obj["MembershipType"]
     bitcoin_unit_to_sold = obj["BitcoinSell"]
 
-    commission_rate_type = get_commission_type(obj["CommissionType"])
+    commission_rate_type = obj["CommissionType"]
     commission_type = get_tax_rate(membership_type)
 
     rate = get_current_rate()
@@ -503,7 +522,7 @@ def buy_bitcoin():
     membership_type = obj["MembershipType"]
     bitcoin_unit_to_buy = obj["BitcoinBuy"]
 
-    commission_rate_type = get_commission_type(obj["CommissionType"])
+    commission_rate_type = obj["CommissionType"]
     commission_type = get_tax_rate(membership_type)
 
     rate = get_current_rate()
