@@ -49,7 +49,7 @@ def get_commission_type(val):
 
 # to update the user account balance
 def update_acc_balance(client_id, balance):
-    updated: Bool = False
+    updated = False
     cursor = mysql.get_db().cursor()
     try:
         cursor.execute('UPDATE ACC_DETAILS SET FiatCurrency = %s WHERE ClientId= %s ', (balance, client_id, ))
@@ -290,18 +290,33 @@ def get_user_details(user_name, password, user_type, return_status):
 def make_session_permanent():
     app.permanent_session_lifetime = datetime.timedelta(minutes=5)
 
-# update user account balance
-@app.route("/update_balance")
-def update_balance():
+# credit into users account
+@app.route("/credit_balance")
+def credit_balance():
     data = get_json_data(request.data)
     client_id = session['id']
-    fiat_update_balance = data['balance']
+    credit_amt = data['balance']
     fiat_balance = data['cur_balance']
-    if  update_acc_balance(client_id, fiat_balance+fiat_update_balance):
+    if  update_acc_balance(client_id, fiat_balance+credit_amt):
         return redirect(url_for('login'))
     else :
-        return json.dumps({'success':True})
+        return json.dumps({'success':'False'})
 
+# debit from users account
+@app.route("/debit_balance")
+def debit_balance():
+    data =get_json_data(request.data)
+    client_id = session['id']
+    fiat_balance = data['cur_balance']
+    debit_amt = data['balance']
+
+    if fiat_balance < debit_amt:
+        return json.dumps({'success': False})
+
+    if update_acc_balance(client_id, fiat_balance-debit_amt):
+        return redirect(url_for('login'))
+    else:
+        return json.dumps({'success': False})
 
 # homepage/login route
 @app.route("/")
