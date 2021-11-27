@@ -239,13 +239,13 @@ def get_pending_data(user_type, client_id=0):
     if user_type == 'silver' or user_type == 'gold':
         cursor.execute('SELECT * FROM TRANSACTION WHERE ClientId = %s AND Status = %s', (client_id, "pending"))
         data = cursor.fetchall()
-        return beautify_sql_response_pending_transaction(data)
     elif user_type == 'admin':
-        return 'admin'
+        cursor.execute('SELECT * FROM TRANSACTION')
+        data = cursor.fetchall()
     else :
         cursor.execute('SELECT * FROM TRANSACTION WHERE Status = %s ', ("pending", ))
         data = cursor.fetchall()
-        return beautify_sql_response_pending_transaction(data)
+    return beautify_sql_response_pending_transaction(data)
 
 # get pending transaction which is not is not of the current user
 def get_pending_data_except_current_user(client_id):
