@@ -5,6 +5,41 @@ updateCommission = (type) => {
     commissionType = type;
 }
 
+manage_money = (current_bal) => {
+    let amt_move = $('#amt_move').val();
+    let url = "http://127.0.0.1:5000/"
+    let manage_credit = document.getElementById('credit_radio').checked;
+    let manage_debit = document.getElementById('debit_radio').checked;
+
+    if (manage_credit === true) {
+        url += 'credit_balance';
+    }
+
+    if (manage_debit === true) {
+        url += 'debit_balance';
+    }
+
+    let data = {
+        credit_amt:amt_move,
+        cur_balance:current_bal,
+    }
+
+    $.ajax({
+        type:"POST",
+        url:url,
+        data : JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        crossDomain:true,
+        dataType:"json",
+        success: (data, status, jqXHR) => {
+            window.location.reload();
+        }, error:(jqXHR, status) => {
+            alert("Money transfer failed");
+        }
+    });
+}
+
+
 // sell bitcoin
 sell_bitcoin = (clientId, membership_type) => {
 

@@ -43,6 +43,7 @@ def get_tax_rate(val):
 
 # to update the user account balance
 def update_acc_balance(client_id, balance):
+    print(client_id, balance)
     updated = False
     cursor = mysql.get_db().cursor()
     try:
@@ -167,7 +168,7 @@ def update_transaction_table(client_decision):
                         # calculate the bitcoin amount and update the seller table
                         cursor.execute('UPDATE Seller SET Units = %s, CommisionPaid = %s WHERE ClientId = %s',
                                        (seller_bitcoin_sell_amt-bitcoin_amt,
-                                        seller_commission_paid - ((seller_bitcoin_sell_amt-bitcoin_amt)*
+                                        seller_commission_paid - ((seller_bitcoin_sell_amt - bitcoin_amt) *
                                                                   seller_bitcoin_commission_rate * int(seller_log[4])/100),
                                         recipient_id, ))
 
@@ -222,8 +223,7 @@ def update_transaction_table(client_decision):
                         cursor.execute('UPDATE Seller SET Units = %s, CommisionPaid = %s WHERE ClientId = %s',
                                        (seller_bitcoin_sell_amt - bitcoin_amt,
                                         seller_commission_paid - ((seller_bitcoin_sell_amt - bitcoin_amt) *
-                                                                  seller_bitcoin_commission_rate * int(
-                                                    seller_log[4]) / 100),
+                                                                  seller_bitcoin_commission_rate * int(seller_log[4]) / 100),
                                         recipient_id,))
 
             cursor.execute('UPDATE Transaction SET Status = %s WHERE ClientId = %s',(decision, client_id, ) )
@@ -296,30 +296,30 @@ def make_session_permanent():
     app.permanent_session_lifetime = datetime.timedelta(minutes=5)
 
 # credit into users account
-@app.route("/credit_balance")
+@app.route("/credit_balance", methods=['POST'])
 def credit_balance():
     data = get_json_data(request.data)
     client_id = session['id']
-    credit_amt = data['balance']
-    fiat_balance = data['cur_balance']
-    if  update_acc_balance(client_id, fiat_balance+credit_amt):
-        return redirect(url_for('login'))
-    else :
+    credit_amt = float(data['credit_amt'])
+    fiat_balance = float(data['cur_balance'])
+    if update_acc_balance(client_id, fiat_balance+credit_amt):
+        return json.dumps({'success':'True'})
+    else:
         return json.dumps({'success':'False'})
 
 # debit from users account
-@app.route("/debit_balance")
+@app.route("/debit_balance", methods=['POST'])
 def debit_balance():
     data =get_json_data(request.data)
     client_id = session['id']
-    fiat_balance = data['cur_balance']
-    debit_amt = data['balance']
+    fiat_balance = float(data['cur_balance'])
+    debit_amt = float(data['credit_amt'])
 
     if fiat_balance < debit_amt:
         return json.dumps({'success': False})
 
     if update_acc_balance(client_id, fiat_balance-debit_amt):
-        return redirect(url_for('login'))
+        return json.dumps({'success':'True'})
     else:
         return json.dumps({'success': False})
 
@@ -328,11 +328,11 @@ def debit_balance():
 def credit_bitcoin():
     data = get_json_data(request.data)
     client_id = session['id']
-    bitcoin_amt = data['curr_bitcoin']
-    bitcoin_credit = data['bitcoin']
+    bitcoin_amt = float(data['curr_bitcoin'])
+    bitcoin_credit = float(data['bitcoin'])
 
     if update_user_bitcoin_amt(client_id, bitcoin_amt+bitcoin_credit):
-        return redirect(url_for('login'))
+        return json.dumps({'success':'True'})
     else:
         return json.dumps({'success' : False})
 
@@ -341,14 +341,14 @@ def credit_bitcoin():
 def debit_bitcoin():
     data = get_json_data(request.data)
     client_id = session['id']
-    bitcoin_amt = data['curr_bitcoin']
-    bitcoin_debit = data['bitcoin']
+    bitcoin_amt = float(data['curr_bitcoin'])
+    bitcoin_debit = float(data['bitcoin'])
 
     if bitcoin_debit > bitcoin_amt:
         return json.dumps({'success':False})
 
     if update_user_bitcoin_amt(client_id,bitcoin_amt-bitcoin_debit):
-        return redirect(url_for('login'))
+        return json.dumps({'success':'True'})
     else:
         return json.dumps({'success':False})
 
