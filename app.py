@@ -7,6 +7,7 @@ import re, yaml, io
 import datetime
 import json
 from adapters.api_calls_one import get_current_rate
+from helpers.helpers import get_json_data
 
 app = Flask(__name__)
 
@@ -43,7 +44,6 @@ def get_tax_rate(val):
 
 # to update the user account balance
 def update_acc_balance(client_id, balance):
-    print(client_id, balance)
     updated = False
     cursor = mysql.get_db().cursor()
     try:
@@ -63,14 +63,6 @@ def update_user_bitcoin_amt(client_id, bitcoin):
         updated = True
     finally:
         return updated
-
-
-# returns the dictionary from byte string
-def get_json_data(req):
-    bytes_response = req
-    json_response = bytes_response.decode('utf8').replace("'", '"')
-    obj = json.loads(json_response)
-    return obj
 
 # return the current date time as per the specification of the db
 def get_current_datetime():
@@ -308,7 +300,7 @@ def credit_balance():
 # debit from users account
 @app.route("/debit_balance", methods=['POST'])
 def debit_balance():
-    data =get_json_data(request.data)
+    data = get_json_data(request.data)
     client_id = session['id']
     fiat_balance = float(data['cur_balance'])
     debit_amt = float(data['credit_amt'])
