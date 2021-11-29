@@ -293,6 +293,7 @@ def get_user_details(user_name, password, user_type, return_status):
 # make session time 5 min
 @app.before_request
 def make_session_permanent():
+    session.permanent = True;
     app.permanent_session_lifetime = datetime.timedelta(minutes=5)
 
 # credit into users account
@@ -351,6 +352,14 @@ def debit_bitcoin():
         return json.dumps({'success':'True'})
     else:
         return json.dumps({'success':False})
+
+# implementation needs to be done properly, only one function to query the result, which will be called by all the API's
+def execute(query):
+    cursor = mysql.get_db().cursor()
+
+    cursor.execute(query)
+    data = cursor.fetchall()
+    return data
 
 # homepage/login route
 @app.route("/")
