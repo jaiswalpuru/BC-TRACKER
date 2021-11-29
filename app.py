@@ -55,10 +55,6 @@ def update_user_bitcoin_amt(client_id, bitcoin):
     finally:
         return updated
 
-# return the current date time as per the specification of the db
-def get_current_datetime():
-    return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
 # implementation needs to be done properly, only one function to query the result, which will be called by all the API's
 def execute(query):
     cursor = mysql.get_db().cursor()

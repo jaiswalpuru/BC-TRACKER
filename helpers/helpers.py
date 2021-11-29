@@ -15,3 +15,7 @@ def get_tax_rate(val):
     if val == 'gold':
         return tax_rate_gold_member
     return tax_rate_silver_member
+
+# return the current date time as per the specification of the db
+def get_current_datetime():
+    return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
