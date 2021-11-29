@@ -254,12 +254,10 @@ def get_pending_data(user_type, client_id=0):
 
 # get pending transaction which is not is not of the current user
 def get_pending_data_except_current_user(client_id):
-    cursor = mysql.get_db().cursor()
 
-    cursor.execute('SELECT u.UserName, s.Units, s.ClientId  FROM Seller s JOIN Users u ON s.ClientId=u.ClientId'
-                   ' WHERE s.ClientId != %s ', (client_id, ))
-    data = cursor.fetchall()
-    return beautify_sql_response_pending_transaction(data)
+    data = execute('SELECT u.UserName, s.Units, s.ClientId  FROM Seller s JOIN Users u ON s.ClientId=u.ClientId'
+                   ' WHERE s.ClientId != {} '.format(client_id))
+    return data
 
 # get details of bitcoin
 def get_user_bitcoin_details(client_id):
