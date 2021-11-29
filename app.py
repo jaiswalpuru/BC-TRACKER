@@ -6,8 +6,8 @@ import pymysql
 import re, yaml, io
 import datetime
 import json
-from adapters.api_calls_one import get_current_rate
-from helpers.helpers import get_json_data
+from adapters.api_calls_one import *
+from helpers.helpers import *
 
 app = Flask(__name__)
 
@@ -32,15 +32,6 @@ app.config['MYSQL_DATABASE_PASSWORD'] = config['PASSWORD']
 app.config['MYSQL_DATABASE_DB'] = config['DB']
 
 mysql = MySQL(app)
-
-# get the tax rate based on the type of the user
-def get_tax_rate(val):
-    # tax rate based on membership type
-    tax_rate_gold_member = 5.0
-    tax_rate_silver_member = 7.0
-    if val == 'gold':
-        return tax_rate_gold_member
-    return tax_rate_silver_member
 
 # to update the user account balance
 def update_acc_balance(client_id, balance):
