@@ -76,6 +76,14 @@ def get_json_data(req):
 def get_current_datetime():
     return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
+# implementation needs to be done properly, only one function to query the result, which will be called by all the API's
+def execute(query):
+    cursor = mysql.get_db().cursor()
+
+    cursor.execute(query)
+    data = cursor.fetchall()
+    return beautify_sql_response_pending_transaction(data)
+
 # will store the response of sql query in a 2d matrix and return
 def beautify_sql_response_pending_transaction(data):
     res = []
@@ -234,18 +242,15 @@ def update_transaction_table(client_decision):
 #--------------------Needs to completed--------------------------------------------
 # fetch the data which need to be shown to respective user.
 def get_pending_data(user_type, client_id=0):
-    cursor = mysql.get_db().cursor()
 
     if user_type == 'silver' or user_type == 'gold':
-        cursor.execute('SELECT * FROM TRANSACTION WHERE ClientId = %s AND Status = %s', (client_id, "pending"))
-        data = cursor.fetchall()
+        return execute('SELECT * FROM TRANSACTION WHERE ClientId = {} AND Status = "{}"'.format(client_id, "pending"))
     elif user_type == 'admin':
-        cursor.execute('SELECT * FROM TRANSACTION')
+        return execute('SELECT * FROM TRANSACTION')
         data = cursor.fetchall()
     else :
-        cursor.execute('SELECT * FROM TRANSACTION WHERE Status = %s ', ("pending", ))
-        data = cursor.fetchall()
-    return beautify_sql_response_pending_transaction(data)
+        return execute('SELECT * FROM TRANSACTION WHERE Status = "{}"'.format("pending"))
+
 
 # get pending transaction which is not is not of the current user
 def get_pending_data_except_current_user(client_id):
@@ -258,12 +263,11 @@ def get_pending_data_except_current_user(client_id):
 
 # get details of bitcoin
 def get_user_bitcoin_details(client_id):
-    cursor = mysql.get_db().cursor()
-    cursor.execute('SELECT Units FROM BITCOIN WHERE ClientId = %s', (client_id,))
-    units = cursor.fetchone()
-    if units is None:
-        return None
-    return units[0]
+    units = execute('SELECT Units FROM BITCOIN WHERE ClientId = {}'.format(client_id))
+
+    if len(units)==0:
+        return 0
+    return units[0][0]
 
 # get balance details
 def get_account_details(client_id):
@@ -353,14 +357,6 @@ def debit_bitcoin():
     else:
         return json.dumps({'success':False})
 
-# implementation needs to be done properly, only one function to query the result, which will be called by all the API's
-def execute(query):
-    cursor = mysql.get_db().cursor()
-
-    cursor.execute(query)
-    data = cursor.fetchall()
-    return data
-
 # homepage/login route
 @app.route("/")
 @app.route("/login", methods=['GET','POST'])
@@ -374,7 +370,7 @@ def login():
     pending_transaction = ''
 
     # check is user is already logged in
-    if len(session) > 0 and session['loggedin']:
+    if len(session) > 1 :
         acc_details = get_account_details(session['id'])
         membership_type = get_user_details(session['username'], '', '', True)
         data = get_pending_data(membership_type,session['id'])
