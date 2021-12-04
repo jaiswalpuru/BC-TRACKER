@@ -184,6 +184,9 @@ manage_bitcoin = (cur_bitcoin) => {
         }
     });
 
-
     return;
+}
+
+buy_ether = () => {
+
 }

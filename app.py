@@ -571,3 +571,11 @@ def update_transaction():
 @app.route('/get_bit_rate',methods=['GET'])
 def get_bit_rate():
     return json.dumps({'curr_rate':get_current_rate()})
+
+## to be done
+@app.route('/buy_ether', methods=['POST'])
+def buy_ether():
+    '''
+
+    :return:
+    '''
