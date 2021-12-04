@@ -567,3 +567,7 @@ def update_transaction():
     update_transaction_table(client_decision)
 
     return redirect(url_for('login'))
+
+@app.route('/get_bit_rate',methods=['GET'])
+def get_bit_rate():
+    return json.dumps({'curr_rate':get_current_rate()})

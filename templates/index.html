@@ -140,7 +140,8 @@
                                     </div>
                                     <div class="modal-body">
                                         <ul class="list-group">
-                                            <li class="list-group-item">Current Bitcoin Rate : {{ bitcoin_rate }}</li>
+                                            <li class="list-group-item">
+                            <button type="button" class="btn btn-primary" onclick="get_bitcoin_rate()">Current Bitcoin rate</button></li>
                                             <li class="list-group-item">Total Fiat Currency : {{ acc_details[1] }}</li>
                                             <li class="list-group-item">Total $ value for bitcoin : {{ bitcoin_rate * acc_details[1] }}</li>
                                         </ul>
@@ -174,7 +175,8 @@
                 </div>
                 <div class="modal-body">
                     <ul class="list-group">
-                        <li class="list-group-item">Current Bit Coin Rate : {{ bitcoin_rate }}</li>
+                        <li class="list-group-item">
+                            <button type="button" class="btn btn-primary" onclick="get_bitcoin_rate()">Current Bitcoin rate</button></li>
                         <li class="list-group-item">Total Fiat Currency : {{ acc_details[1] }}</li>
                         <li class="list-group-item" id="bitcoin_units_owned">Total Bitcoin Units : {{ bitcoin_unit }}</li>
                     </ul>
@@ -203,7 +205,8 @@
                 </div>
                 <div class="modal-body">
                     <ul class="list-group">
-                        <li class="list-group-item">Current Bit Coin Rate : {{ bitcoin_rate }}</li>
+                        <li class="list-group-item">
+                            <button type="button" class="btn btn-primary" onclick="get_bitcoin_rate()">Current Bitcoin rate</button></li>
                         <li class="list-group-item">Total Fiat Currency : {{ acc_details[1] }}</li>
                     </ul>
                     <br>
@@ -236,7 +239,9 @@
                 </div>
                 <div class="modal-body">
                     <ul class="list-group">
-                        <li class="list-group-item">Current Bit Coin Rate : {{ bitcoin_rate }}</li>
+                        <!--                        <li class="list-group-item">Current Bit Coin Rate : {{ bitcoin_rate }}</li>-->
+                        <li class="list-group-item">
+                            <button type="button" class="btn btn-primary" onclick="get_bitcoin_rate()">Current Bitcoin rate</button></li>
                         <li class="list-group-item">Total Bitcoin : {{ bitcoin_unit }}</li>
                     </ul>
                     <br>
@@ -257,7 +262,5 @@
             </div>
         </div>
     </div>
-
-
 </body>
 </html>

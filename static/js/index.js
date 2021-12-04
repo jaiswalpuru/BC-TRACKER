@@ -130,6 +130,21 @@ buy_bitcoin = (recipient_id, membership_type, client_id, bitcoin_val) => {
     }
 }
 
+get_bitcoin_rate = () => {
+    $.ajax({
+        type:"GET",
+        url:'http://127.0.0.1:5000/get_bit_rate',
+        contentType: "application/json; charset=utf-8",
+        crossDomain:true,
+        dataType:"json",
+        success: (data, status, jqXHR) => {
+            alert("Current Bitcoin rate : " + data.curr_rate);
+        }, error:(jqXHR, status) => {
+            alert("Money transfer failed");
+        }
+    });
+}
+
 manage_bitcoin = (cur_bitcoin) => {
     let amt = $('#bit_move').val();
     let url = '';
