@@ -95,6 +95,12 @@ Select * from BITCOIN;
 Select * from TRANSACTION;
 Select * from Seller;
 
+Select * FROM ACC_DETAILS;
+
+SELECT * FROM TRANSACTION WHERE ClientId = 5 AND Status = "pending";
+
+Select * from Users;
+
 
 select * from BITCOIN;
 INSERT INTO `Transaction` (`ClientId`,`TransactionId`,`TransactionType`, `Date`, `CommisionPaid`, `CommisionType`, `RecipientId`, `BitCoinAmount`,`Status`) 
@@ -110,7 +116,7 @@ INSERT INTO `Transaction` (`ClientId`,`TransactionId`,`TransactionType`, `Date`,
 VALUES (5, 'random5', 'BUY', now(), 5500, 'Currency', 9, 'completed');
 
 
-Select * from users;
+Select * from Users;
 
 select *
 from Transaction;

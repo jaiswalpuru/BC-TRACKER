@@ -8,6 +8,10 @@ import datetime
 import json
 from adapters.api_calls_one import *
 from helpers.helpers import *
+#
+# ciphertext = encrypt('password', "plaintext")
+# plaintext = decrypt('password', "ciphertext")
+# print(ciphertext)
 
 app = Flask(__name__)
 
@@ -30,6 +34,8 @@ app.secret_key = 'password123'
 app.config['MYSQL_DATABASE_USER'] = config['USERNAME']
 app.config['MYSQL_DATABASE_PASSWORD'] = config['PASSWORD']
 app.config['MYSQL_DATABASE_DB'] = config['DB']
+
+config_app = data_loaded['APP']
 
 mysql = MySQL(app)
 
@@ -301,7 +307,7 @@ def debit_balance():
         return json.dumps({'success': False})
 
 # credit bitcoin into users account
-@app.route("/credit_bitcoin")
+@app.route("/credit_bitcoin", methods=['POST'])
 def credit_bitcoin():
     data = get_json_data(request.data)
     client_id = session['id']
@@ -314,7 +320,7 @@ def credit_bitcoin():
         return json.dumps({'success' : False})
 
 # debit bitcoin from users account
-@app.route("/debit_bitcoin")
+@app.route("/debit_bitcoin", methods=['POST'])
 def debit_bitcoin():
     data = get_json_data(request.data)
     client_id = session['id']

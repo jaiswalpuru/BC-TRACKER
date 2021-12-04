@@ -32,7 +32,12 @@ manage_money = (current_bal) => {
         crossDomain:true,
         dataType:"json",
         success: (data, status, jqXHR) => {
-            window.location.reload();
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert("Invalid amount");
+            }
+            //window.location.reload();
         }, error:(jqXHR, status) => {
             alert("Money transfer failed");
         }
@@ -123,4 +128,47 @@ buy_bitcoin = (recipient_id, membership_type, client_id, bitcoin_val) => {
             }
         });
     }
+}
+
+manage_bitcoin = (cur_bitcoin) => {
+    let amt = $('#bit_move').val();
+    let url = '';
+
+    let manage_credit_bit = document.getElementById('credit_radio_bit').checked;
+    let manage_debit_bit = document.getElementById('debit_radio_bit').checked;
+
+    if (manage_credit_bit === true) {
+        url += 'credit_bitcoin';
+    }
+
+    if (manage_debit_bit === true) {
+        url += 'debit_bitcoin';
+    }
+
+    let data = {
+        bitcoin:amt,
+        curr_bitcoin:cur_bitcoin,
+    }
+
+    $.ajax({
+        type:"POST",
+        url:url,
+        data : JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        crossDomain:true,
+        dataType:"json",
+        success: (data, status, jqXHR) => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert("Invalid amount");
+            }
+            //window.location.reload();
+        }, error:(jqXHR, status) => {
+            alert("Money transfer failed");
+        }
+    });
+
+
+    return;
 }
