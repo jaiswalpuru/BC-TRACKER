@@ -33,11 +33,11 @@ app.config['MYSQL_DATABASE_USER'] = config['USERNAME']
 app.config['MYSQL_DATABASE_PASSWORD'] = config['PASSWORD']
 app.config['MYSQL_DATABASE_DB'] = config['DB']
 
+mysql = MySQL(app)
+
 config_app = data_loaded['APP']
 key = config_app["KEY"]
 cipher = Fernet(key)
-
-mysql = MySQL(app)
 
 # to update the user account balance
 def update_acc_balance(client_id, balance):
