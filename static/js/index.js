@@ -147,7 +147,7 @@ get_bitcoin_rate = () => {
 
 manage_bitcoin = (cur_bitcoin) => {
     let amt = $('#bit_move').val();
-    let url = '';
+    let url = 'http://127.0.0.1:5000/';
 
     let manage_credit_bit = document.getElementById('credit_radio_bit').checked;
     let manage_debit_bit = document.getElementById('debit_radio_bit').checked;
@@ -187,6 +187,36 @@ manage_bitcoin = (cur_bitcoin) => {
     return;
 }
 
-buy_ether = () => {
+buy_ether = (curr_balance, curr_coin) => {
+    let buy_coin = $('#buy_bitcoin_ether').val();
 
+    if (isNaN(buy_coin)) {
+        alert("Please enter proper value!");
+        return;
+    }
+
+    let data = {
+        amt_to_buy : buy_coin,
+        curr_bal : curr_balance,
+        curr_coin : curr_coin,
+    }
+
+    $.ajax({
+        type:"POST",
+        url:"http://127.0.0.1:5000/buy_ether",
+        data : JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        crossDomain:true,
+        dataType:"json",
+        success:(data, status, jqXHR) => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                console.log(data.msg);
+                alert("Failed due to insufficient balance");
+            }
+        }, error:(jqXHR, status) => {
+            console.log(jqXHR, status);
+        }
+    });
 }

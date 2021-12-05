@@ -575,7 +575,20 @@ def get_bit_rate():
 ## to be done
 @app.route('/buy_ether', methods=['POST'])
 def buy_ether():
-    '''
+    obj = get_json_data(request.data)
 
-    :return:
-    '''
+    client_id = session["id"]
+    bitcoin_unit_to_buy = float(obj["amt_to_buy"])
+    curr_balance = float(obj["curr_bal"])
+    curr_bitcoin = float(obj["curr_coin"])
+    rate = float(get_current_rate())
+
+    if bitcoin_unit_to_buy * rate < curr_balance:
+        cursor = mysql.get_db().cursor()
+        cursor.execute('UPDATE ACC_DETAILS SET FiatCurrency = %s WHERE ClientId = %s',
+                       (curr_balance-(bitcoin_unit_to_buy*rate), client_id,))
+        cursor.execute('UPDATE BITCOIN SET Units = %s WHERE ClientId = %s', (curr_bitcoin+bitcoin_unit_to_buy, client_id, ))
+        mysql.get_db().commit()
+        return json.dumps({"success":True, "msg":"Congratulations you just bought {} bitcoin from ether".format(bitcoin_unit_to_buy)})
+    else :
+        return json.dumps({"success":False, "msg":"Not enough money to buy from ether"})
