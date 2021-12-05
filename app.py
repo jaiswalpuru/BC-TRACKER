@@ -572,7 +572,7 @@ def update_transaction():
 def get_bit_rate():
     return json.dumps({'curr_rate':get_current_rate()})
 
-## to be done
+## completed
 @app.route('/buy_ether', methods=['POST'])
 def buy_ether():
     obj = get_json_data(request.data)
