@@ -133,3 +133,6 @@ dmypy.json
 
 #Junk
 .DS_STORE
+
+# idea - pycharm - who comments .gitignore bruh
+.idea/*
