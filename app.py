@@ -6,12 +6,10 @@ import pymysql
 import re, yaml, io
 import datetime
 import json
+import base64
 from adapters.api_calls_one import *
 from helpers.helpers import *
-#
-# ciphertext = encrypt('password', "plaintext")
-# plaintext = decrypt('password', "ciphertext")
-# print(ciphertext)
+from cryptography.fernet import Fernet
 
 app = Flask(__name__)
 
@@ -36,6 +34,8 @@ app.config['MYSQL_DATABASE_PASSWORD'] = config['PASSWORD']
 app.config['MYSQL_DATABASE_DB'] = config['DB']
 
 config_app = data_loaded['APP']
+key = config_app["KEY"]
+cipher = Fernet(key)
 
 mysql = MySQL(app)
 
@@ -261,9 +261,12 @@ def get_user_details(user_name, password, user_type, return_status):
     cursor = mysql.get_db().cursor()
 
     if not return_status:
-        cursor.execute('SELECT * FROM Users WHERE UserName = %s AND Password = %s and Type IN %s ',
-                       (user_name, password, user_type,))
+        cursor.execute('SELECT * FROM Users WHERE UserName = %s AND Type IN %s ',
+                       (user_name, user_type,))
         account = cursor.fetchone()
+        password_decrypt = cipher.decrypt(bytes(account[4],'utf-8')).decode('utf-8')
+        if password_decrypt != password:
+            return None
         if account is None:
             return None
         return list(account)
@@ -424,7 +427,7 @@ def register():
         username = request.form['username']
         first_name = request.form['firstname']
         last_name = request.form['lastname']
-        password = request.form['password']
+        password = cipher.encrypt(str.encode(request.form['password']))
         email = request.form['email']
         phone = request.form['phone']
         zip = request.form['zip']
