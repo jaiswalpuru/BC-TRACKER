@@ -630,7 +630,6 @@ def buy_bitcoin():
 
 # update a list of transactions which is selected by the trader
 @app.route('/update_transaction', methods=['POST'])
-@cross_origin(support_credentials=True)
 def update_transaction():
     client_decision = []
 
