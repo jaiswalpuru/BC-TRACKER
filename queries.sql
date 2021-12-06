@@ -73,3 +73,14 @@ CREATE TABLE IF NOT EXISTS `SELLER` (
 )Engine=InnoDB DEFAULT CHARSET=utf8;
 
 -- GRANT ALL ON BITCOIN_TRANSACTION.* TO 'root'@'localhost';
+INSERT INTO Users(UserName, FirstName, LastName, Password, Phone, Email, Type) VALUES('Admin', 'first_admin','last_admin',
+ 'gAAAAABhrThfm9QYGMSzwSd2KBsuGHkczMrE6ntkkiLC72RN5RbIp-xj2g3Sej9dlFfh3Oeo-QCDTCN4LDRxf5XA24ZjA7PHAQ==', 4699272570, 'iamadmin@gmail.com',
+ 'admin');
+
+INSERT INTO Users(UserName, FirstName, LastName, Password, Phone, Email, Type) VALUES('Trader_one', 'first_trader','first_trader',
+ 'gAAAAABhrTgTwWOsuXpqPBdk2jaeDYJNRUKSMfxP7La1jjH7mo1v9PQoFlVa7UJ3icRfIkkLtSuBviCa-sVxBbY_o73vi688Xw==', 4699252577, 'iamtradertwo@gmail.com',
+ 'trader');
+
+ INSERT INTO Users(UserName, FirstName, LastName, Password, Phone, Email, Type) VALUES('Trader_two', 'second_trader','second_trader',
+ 'gAAAAABhrTgrWXPWN_0j__PbN3-uzmmO4ywBT6dGgYjjy_ka9-BJoUewK9klB260q1uj8JpEu2DefPCUakAU_KZlND1XxZfaSA==', 4696053013, 'iamtradertwo@gmail.com',
+ 'trader');
