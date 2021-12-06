@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_caching import Cache
 from markupsafe import escape
@@ -27,11 +28,19 @@ with open("config.yaml", "r") as stream:
     data_loaded = yaml.safe_load(stream)
 config = data_loaded['DATABASE']
 
-# initialize all the key value pairs required for the mysql connection
 app.secret_key = 'password123'
-app.config['MYSQL_DATABASE_USER'] = config['USERNAME']
-app.config['MYSQL_DATABASE_PASSWORD'] = config['PASSWORD']
-app.config['MYSQL_DATABASE_DB'] = config['DB']
+
+if 'DATABASE_URL' in os.environ:
+    connector_link = os.environ['DATABASE_URL']
+    app.config['MYSQL_DATABASE_USER'] = os.environ['db_user']
+    app.config['MYSQL_DATABASE_PASSWORD'] = os.environ['db_pass']
+    app.config['MYSQL_DATABASE_DB'] = os.environ['database']
+    app.config['MYSQL_HOST'] = os.environ['host']
+else:
+    # initialize all the key value pairs required for the mysql connection
+    app.config['MYSQL_DATABASE_USER'] = config['USERNAME']
+    app.config['MYSQL_DATABASE_PASSWORD'] = config['PASSWORD']
+    app.config['MYSQL_DATABASE_DB'] = config['DB']
 
 mysql = MySQL(app)
 
