@@ -131,9 +131,9 @@
                     {% for d in pending_transaction %}
                     <li class="list-group-item">
                         <button type="button" class="btn btn-outline-dark"
-                                data-bs-toggle="modal" data-bs-target="#buy_user_Modal">{{ d[0] }} | {{ d[1] }} </button>
+                                data-bs-toggle="modal" data-bs-target="#{{d[0]}}">{{ d[0] }} | {{ d[1] }} </button>
                         <!-- Modal 1 -->
-                        <div class="modal fade" id="buy_user_Modal" tabindex="-1" aria-hidden="true">
+                        <div class="modal fade" id="{{d[0]}}" tabindex="-1" aria-hidden="true">
                             <div class="modal-dialog">
                                 <div class="modal-content">
                                     <div class="modal-header">
@@ -149,13 +149,13 @@
                                         </ul>
                                         <hr>
                                         <div class="mb-3">
-                                            <label for="buy_bitcoin_value" class="form-label">Number of bitcoins you want to buy</label>
-                                            <input type="text" class="form-control" id="buy_bitcoin_value" >
+                                            <label for="buy_bitcoin_value{{d[0]}}" class="form-label">Number of bitcoins you want to buy</label>
+                                            <input type="text" class="form-control" id="buy_bitcoin_value{{d[0]}}" >
                                         </div>
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="button" class="btn btn-primary" onclick=buy_bitcoin(`{{session['id']}}`,`{{membership_type}}`,`{{d[2]}}`,`{{d[1]}}`)>Submit</button>
+                                        <button type="button" class="btn btn-primary" onclick=buy_bitcoin(`{{session['id']}}`,`{{membership_type}}`,`{{d[2]}}`,`{{d[1]}}`,`{{d[0]}}`)>Submit</button>
                                     </div>
                                 </div>
                             </div>

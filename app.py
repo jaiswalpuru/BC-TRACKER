@@ -142,7 +142,7 @@ def update_transaction_table(client_decision):
 
             # commission rate for seller at the time of selling
             seller_bitcoin_commission_rate = (seller_commission_paid * 100)/(int(seller_log[4])*bitcoin_amt)
-
+        
             commission_rate_in_bitcoin = commission_paid / buyer_bitcoin_commission_rate
             seller_rate_in_bitcoin = seller_commission_paid / seller_bitcoin_commission_rate
             commission_rate_in_fiat_buyer = 0
@@ -610,6 +610,7 @@ def buy_bitcoin():
     commission_type = get_tax_rate(membership_type)
 
     rate = get_current_rate()
+    print(bitcoin_unit_to_buy)
     commission_paid = float(bitcoin_unit_to_buy) * float(rate)/100
 
     cursor = mysql.get_db().cursor()
