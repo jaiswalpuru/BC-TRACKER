@@ -1,5 +1,7 @@
 import json
 import datetime
+import random
+import string
 
 # returns the dictionary from byte string
 def get_json_data(req):
@@ -20,3 +22,7 @@ def get_tax_rate(val):
 # return the current date time as per the specification of the db
 def get_current_datetime():
     return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+# return random string
+def get_random_string():
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))

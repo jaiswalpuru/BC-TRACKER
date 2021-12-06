@@ -92,6 +92,12 @@ sell_bitcoin = (clientId, membership_type) => {
 
 // buy bitcoin
 buy_bitcoin = (recipient_id, membership_type, client_id, bitcoin_val) => {
+
+    if (commissionType==='') {
+        alert("Please select the commission type from profile tab");
+        return;
+    }
+
     let bit_sell = $('#buy_bitcoin_value').val();
 
     if (bit_sell === '' || isNaN(bit_sell)) {
