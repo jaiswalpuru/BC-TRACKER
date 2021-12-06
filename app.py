@@ -15,7 +15,7 @@ from cryptography.fernet import Fernet
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
-app.config['CORS_HEADERS'] = 'Content-Type'
+app.config['CORS_HEADERS'] = 'application/json'
 # cache config
 cache_config = {
     "DEBUG" : True,
