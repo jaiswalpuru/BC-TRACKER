@@ -12,6 +12,8 @@ Flask-Caching = "==1.10.1"
 MarkupSafe = "==2.0.0"
 PyMySQL = "==1.0.2"
 PyYAML = "==6.0"
+flask-mysql = "*"
+cryptography = "*"
 
 [dev-packages]
 
