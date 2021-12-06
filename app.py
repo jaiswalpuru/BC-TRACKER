@@ -14,8 +14,8 @@ from helpers.helpers import *
 from cryptography.fernet import Fernet
 
 app = Flask(__name__)
-cors = CORS(app, resources={r"/*": {"origins": "*"}})
-app.config['CORS_HEADERS'] = 'Content-Type'
+# cors = CORS(app, resources={r"/*": {"origins": "*"}})
+# app.config['CORS_HEADERS'] = 'Content-Type'
 # cache config
 cache_config = {
     "DEBUG" : True,
