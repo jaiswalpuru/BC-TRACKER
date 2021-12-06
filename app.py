@@ -1,6 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_caching import Cache
+from flask_cors import CORS
 from markupsafe import escape
 from flaskext.mysql import MySQL
 import pymysql
@@ -13,6 +14,7 @@ from helpers.helpers import *
 from cryptography.fernet import Fernet
 
 app = Flask(__name__)
+CORS(app)
 
 # cache config
 cache_config = {
