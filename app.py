@@ -655,7 +655,6 @@ def get_bit_rate():
 
 # buy from ether
 @app.route('/buy_ether', methods=['POST'])
-@cross_origin()
 def buy_ether():
     obj = get_json_data(request.data)
 
