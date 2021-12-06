@@ -283,8 +283,7 @@ def update_transaction_table(client_decision):
                                         seller_commission_paid - ((seller_bitcoin_sell_amt - bitcoin_amt) *
                                                                   seller_bitcoin_commission_rate * int(seller_log[4]) / 100),
                                         recipient_id,))
-
-            cursor.execute('UPDATE Transaction SET Status = %s, TraderId = %s  WHERE ClientId = %s',(decision, session[id], client_id, ) )
+            cursor.execute('UPDATE Transaction SET Status = %s, TraderId = %s  WHERE ClientId = %s',(decision, session["id"], client_id, ) )
 
             mysql.get_db().commit()
     return True
