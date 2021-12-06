@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_caching import Cache
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from markupsafe import escape
 from flaskext.mysql import MySQL
 import pymysql
