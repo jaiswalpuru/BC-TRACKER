@@ -100,7 +100,6 @@ def beautify_sql_response_pending_transaction(data):
 
 # update transaction table based on the decision of the user
 def update_transaction_table(client_decision):
-    print(client_decision)
     cursor = mysql.get_db().cursor()
 
     for val in client_decision:
@@ -349,7 +348,7 @@ def get_user_details(user_name, password, user_type, return_status):
 # make session time 5 min
 @app.before_request
 def make_session_permanent():
-    session.permanent = True;
+    session.permanent = True
     app.permanent_session_lifetime = datetime.timedelta(minutes=5)
 
 # credit into users account
@@ -422,7 +421,7 @@ def login():
     pending_transaction = ''
 
     # check is user is already logged in
-    if len(session) > 1 :
+    if len(session) > 1 and session['username'].lower() != 'admin' :
         acc_details = get_account_details(session['id'])
         membership_type = get_user_details(session['username'], '', '', True)
         data = get_pending_data(membership_type,session['id'])
@@ -452,7 +451,13 @@ def login():
             cursor.execute('SELECT u.UserName, b.Units FROM Users u JOIN Bitcoin b ON u.ClientId=b.ClientId WHERE Type NOT IN ("admin", "trader")')
             user_data = cursor.fetchall()
             
-            return render_template(file_load, trader=trader_data, user=user_data)
+            membership_type = get_member_type()
+            pending = get_total_pending_transaction()
+            avg_transaction = get_avg_transaction_cur_month()
+            total_bitcoin = get_total_bitcoins_traded()
+
+            return render_template(file_load, trader=trader_data, user=user_data, m_type=membership_type, 
+            pending=pending, avg_transaction=avg_transaction, total_bitcoin=total_bitcoin)
 
         #check if the user exists in db or no
         account = get_user_details(user_name, password, user_type, False)
@@ -629,7 +634,6 @@ def update_transaction():
     # store the client_id, transaction_id and decision in a list of dictionary
     for client_transaction in request.form:
         temp = client_transaction.split("+")
-        print(temp)
         """
         clientid=temp[0], transactionid=temp[1], transactiontype=temp[2], commissionpaid=temp[3], commissiontype=temp[4], 
         recipientid=temp[5], bitcoinamt=temp[6]
@@ -708,7 +712,13 @@ def get_transaction():
     cursor.execute('SELECT u.UserName, b.Units FROM Users u JOIN Bitcoin b ON u.ClientId=b.ClientId')
     user_data = cursor.fetchall()
 
-    return render_template('trader.html', data=data, trader=trader_data, user=user_data)
+    membership_type = get_member_type()
+    pending_count = get_total_pending_transaction()
+    avg_transaction = get_avg_transaction_cur_month()
+    total_bitcoin = get_total_bitcoins_traded()
+
+    return render_template('trader.html', data=data, trader=trader_data, user=user_data, 
+    m_type=membership_type, pending=pending_count, avg_transaction=avg_transaction, total_bitcoin=total_bitcoin)
 
 # delete the user from Users table
 @app.route('/delete_user', methods=['POST'])
@@ -729,12 +739,43 @@ def delete_trader():
     obj = get_json_data(request.data)
 
     trader_name = obj["traderName"]
-    print(trader_name)
     cursor = mysql.get_db().cursor()
     cursor.execute('DELETE FROM Users WHERE UserName = %s', (trader_name, ))
     mysql.get_db().commit()
 
     return json.dumps({"success":True})
+
+
+def get_member_type():
+    cursor = mysql.get_db().cursor()
+
+    cursor.execute("Select COUNT(*),Type FROM Users WHERE Type IN ('gold','silver') GROUP BY Type")
+    data = cursor.fetchall()
+    d = {}
+    for i in data :
+        d[i[1]] = i[0]
+    return d
+
+def get_total_pending_transaction():
+    cursor = mysql.get_db().cursor()
+    cursor.execute('Select COUNT(*) FROM Transaction WHERE Status="pending"')
+
+    data = cursor.fetchall()
+    return data[0][0]
+
+def get_avg_transaction_cur_month():
+    cursor = mysql.get_db().cursor()
+    month = current_month = datetime.datetime.now().strftime('%m')
+    cursor.execute('SELECT AVG(CommisionPaid) FROM Transaction WHERE Date > %s AND Status="completed"', ('2021-'+month+'-01',))
+    data = cursor.fetchall()
+    return data[0][0]
+
+def get_total_bitcoins_traded():
+    cursor = mysql.get_db().cursor()
+    cursor.execute('SELECT SUM(BitCoinAmount) FROM Transaction WHERE Status="completed"')
+    data = cursor.fetchall()
+
+    return data[0][0]
 
 if __name__ == '__main__':
     # Threaded option to enable multiple instances for multiple user access support

@@ -35,25 +35,20 @@
                 <div class="offcanvas-body">
                     <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
                         <li class="nav-item">
-                            <p>Average Transactions this month: {} <br> Total amout of bitcoin traded : {}</p>
+                            <p>Average Transactions this month: {{avg_transaction}} <br> Total amout of bitcoin traded : {{total_bitcoin}}</p>
                         </li>
                         <hr>
                         <li class="nav-item">
-                            <p>Number of Pending transactions: {} </p>
+                            <p>Number of Pending transactions: {{pending}} </p>
                         </li>
                         <hr>
                         <li class="nav-item">
-                            <p>Number of members with status Gold : {} </p>
+                            <p>Number of members with status Gold : {{m_type['gold']}} </p>
                         </li>
                         <hr>
                         <li class="nav-item">
-                            <p>Number of members with status Silver : {} </p>
+                            <p>Number of members with status Silver : {{m_type['silver']}} </p>
                         </li>
-                        <hr>
-                        <li class="nav-item">
-                            <p>Total Comission : {} </p>
-                        </li>
-                        <hr>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
                         </li>

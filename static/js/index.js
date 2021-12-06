@@ -209,7 +209,7 @@ buy_ether = (curr_balance, curr_coin) => {
 
     $.ajax({
         type:"POST",
-        url:"http://127.0.0.1:5000/buy_ether",
+        url:"buy_ether",
         data : JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         crossDomain:true,
