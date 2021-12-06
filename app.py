@@ -45,7 +45,6 @@ else:
     app.config['MYSQL_DATABASE_DB'] = config['DB']
 
 mysql = MySQL(app)
-print("DONE KHASKDJHAKJSDHAKJDHKJASHDKJS")
 
 config_app = data_loaded['APP']
 key = config_app["KEY"]
