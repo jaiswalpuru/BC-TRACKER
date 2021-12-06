@@ -569,6 +569,7 @@ def userdata(client_id):
 
 # this will insert the details in seller table regarding the details of the seller
 @app.route('/sell_bitcoin', methods=['POST'])
+@cross_origin(support_credentials=True)
 def sell_bitcoin():
     obj = get_json_data(request.data)
     client_id = obj["ClientId"]
@@ -599,6 +600,7 @@ def sell_bitcoin():
 
 # create an entry in the transaction table for the current transaction
 @app.route('/buy_bitcoin', methods=['POST'])
+@cross_origin(support_credentials=True)
 def buy_bitcoin():
     obj = get_json_data(request.data)
     client_id = obj["ClientId"]
@@ -628,6 +630,7 @@ def buy_bitcoin():
 
 # update a list of transactions which is selected by the trader
 @app.route('/update_transaction', methods=['POST'])
+@cross_origin(support_credentials=True)
 def update_transaction():
     client_decision = []
 
@@ -697,6 +700,7 @@ def buy_ether():
 
 # get transactions on date range
 @app.route('/get_transaction', methods=['GET'])
+@cross_origin(support_credentials=True)
 def get_transaction():
 
     sDate = request.args.get('sDate')
@@ -722,6 +726,7 @@ def get_transaction():
 
 # delete the user from Users table
 @app.route('/delete_user', methods=['POST'])
+@cross_origin(support_credentials=True)
 def delete_user():
     obj = get_json_data(request.data)
 
@@ -735,6 +740,7 @@ def delete_user():
 
 # delete the trader
 @app.route('/delete_trader', methods=['POST'])
+@cross_origin(support_credentials=True)
 def delete_trader():
     obj = get_json_data(request.data)
 
