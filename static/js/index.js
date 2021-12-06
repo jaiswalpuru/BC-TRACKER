@@ -226,3 +226,68 @@ buy_ether = (curr_balance, curr_coin) => {
         }
     });
 }
+
+getTransaction = () => {
+    let startDate = document.getElementById('sdate').value;
+    let endDate = document.getElementById('edate').value;
+
+    $.ajax({
+        type:"GET",
+        url:"http://127.0.0.1:5000/get_transaction?sDate="+startDate+"&eDate="+endDate,
+        contentType: "application/json; charset=utf-8",
+        crossDomain:true,
+        dataType:"json",
+        success:(data, status, jqXHR) => {}, error:(jqXHR, status) => {
+            console.log(jqXHR, status);
+        }
+    });
+
+    return;
+}
+
+deleteUser = (userName) => {
+
+    let data = {
+        userName : userName,
+    }
+
+    $.ajax({
+        type:"POST",
+        url:"http://127.0.0.1:5000/delete_user",
+        data : JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        crossDomain:true,
+        dataType:"json",
+        success:(data, status, jqXHR) => {
+            if (data.success===true) {
+                window.location.reload();
+            }
+        }, 
+        error:(jqXHR, status) => {
+            console.log(jqXHR, status);
+        }
+    });
+}
+
+deleteTrader = (traderName) => {
+    let data = {
+        traderName : traderName,
+    }
+
+    $.ajax({
+        type:"POST",
+        url:"http://127.0.0.1:5000/delete_trader",
+        data : JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        crossDomain:true,
+        dataType:"json",
+        success:(data, status, jqXHR) => {
+            if (data.success===true) {
+                window.location.reload();
+            }
+        }, 
+        error:(jqXHR, status) => {
+            console.log(jqXHR, status);
+        }
+    });
+}

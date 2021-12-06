@@ -434,6 +434,14 @@ def login():
         else:
             user_type = ['admin']
             file_load = 'admin.html'
+            cursor = mysql.get_db().cursor()
+            cursor.execute('SELECT UserName FROM Users WHERE Type="trader"')
+            trader_data = cursor.fetchall()
+
+            cursor.execute('SELECT u.UserName, b.Units FROM Users u JOIN Bitcoin b ON u.ClientId=b.ClientId WHERE Type NOT IN ("admin", "trader")')
+            user_data = cursor.fetchall()
+            
+            return render_template(file_load, trader=trader_data, user=user_data)
 
         #check if the user exists in db or no
         account = get_user_details(user_name, password, user_type, False)
@@ -634,7 +642,7 @@ def update_transaction():
 def get_bit_rate():
     return json.dumps({'curr_rate':get_current_rate()})
 
-## completed
+# buy from ether
 @app.route('/buy_ether', methods=['POST'])
 def buy_ether():
     obj = get_json_data(request.data)
@@ -658,3 +666,49 @@ def buy_ether():
         return json.dumps({"success":True, "msg":"Congratulations you just bought {} bitcoin from ether".format(bitcoin_unit_to_buy)})
     else :
         return json.dumps({"success":False, "msg":"Not enough money to buy from ether"})
+
+
+# get transactions on date range
+@app.route('/get_transaction', methods=['GET'])
+def get_transaction():
+
+    sDate = request.args.get('sDate')
+    eDate = request.args.get('eDate')
+
+    cursor = mysql.get_db().cursor()
+    cursor.execute('SELECT * FROM TRANSACTION WHERE Date > %s AND Date < %s', (sDate, eDate, ))
+    data = cursor.fetchall()
+
+    cursor.execute('SELECT UserName FROM Users')
+    trader_data = cursor.fetchall()
+
+    cursor.execute('SELECT u.UserName, b.Units FROM Users u JOIN Bitcoin b ON u.ClientId=b.ClientId')
+    user_data = cursor.fetchall()
+
+    return render_template('trader.html', data=data, trader=trader_data, user=user_data)
+
+# delete the user from Users table
+@app.route('/delete_user', methods=['POST'])
+def delete_user():
+    obj = get_json_data(request.data)
+
+    user_name = obj["userName"]
+
+    cursor = mysql.get_db().cursor()
+    cursor.execute('DELETE FROM Users WHERE UserName = %s', (user_name,))
+    mysql.get_db().commit()
+
+    return json.dumps({"success":True})
+
+# delete the trader
+@app.route('/delete_trader', methods=['POST'])
+def delete_trader():
+    obj = get_json_data(request.data)
+
+    trader_name = obj["traderName"]
+    print(trader_name)
+    cursor = mysql.get_db().cursor()
+    cursor.execute('DELETE FROM Users WHERE UserName = %s', (trader_name, ))
+    mysql.get_db().commit()
+
+    return json.dumps({"success":True})
