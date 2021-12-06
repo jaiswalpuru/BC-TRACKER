@@ -667,7 +667,6 @@ def buy_ether():
     else :
         return json.dumps({"success":False, "msg":"Not enough money to buy from ether"})
 
-
 # get transactions on date range
 @app.route('/get_transaction', methods=['GET'])
 def get_transaction():
@@ -712,3 +711,7 @@ def delete_trader():
     mysql.get_db().commit()
 
     return json.dumps({"success":True})
+
+if __name__ == '__main__':
+    # Threaded option to enable multiple instances for multiple user access support
+    app.run(threaded=True, port=5000)
