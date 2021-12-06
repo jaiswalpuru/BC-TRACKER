@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from flask_caching import Cache
 from flask_cors import CORS, cross_origin
 from markupsafe import escape
@@ -14,8 +14,8 @@ from helpers.helpers import *
 from cryptography.fernet import Fernet
 
 app = Flask(__name__)
-cors = CORS(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
+# cors = CORS(app)
+# app.config['CORS_HEADERS'] = 'Content-Type'
 # cache config
 cache_config = {
     "DEBUG" : True,
@@ -654,7 +654,6 @@ def get_bit_rate():
 
 # buy from ether
 @app.route('/buy_ether', methods=['POST'])
-@cross_origin()
 def buy_ether():
     obj = get_json_data(request.data)
 
@@ -674,9 +673,12 @@ def buy_ether():
                        (client_id, transaction_id, "BUY_ETHER",
                         get_current_datetime(), 0, 0, 0,bitcoin_unit_to_buy, "completed", 'None', 0, ))
         mysql.get_db().commit()
-        return json.dumps({"success":True, "msg":"Congratulations you just bought {} bitcoin from ether".format(bitcoin_unit_to_buy)})
+        response = jsonify({"success":True, "msg":"Congratulations you just bought {} bitcoin from ether".format(bitcoin_unit_to_buy)})
     else :
-        return json.dumps({"success":False, "msg":"Not enough money to buy from ether"})
+        response = jsonify({"success":False, "msg":"Not enough money to buy from ether"})
+
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
 
 # get transactions on date range
 @app.route('/get_transaction', methods=['GET'])
