@@ -91,15 +91,14 @@ sell_bitcoin = (clientId, membership_type) => {
 }
 
 // buy bitcoin
-buy_bitcoin = (recipient_id, membership_type, client_id, bitcoin_val) => {
+buy_bitcoin = (recipient_id, membership_type, client_id, bitcoin_val,user) => {
 
     if (commissionType==='') {
         alert("Please select the commission type from profile tab");
         return;
     }
-
-    let bit_sell = $('#buy_bitcoin_value').val();
-
+    
+    let bit_sell = $('#buy_bitcoin_value'+user).val();
     if (bit_sell === '' || isNaN(bit_sell)) {
         alert("Please enter proper inputs");
         return;
