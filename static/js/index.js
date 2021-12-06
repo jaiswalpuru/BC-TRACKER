@@ -7,7 +7,7 @@ updateCommission = (type) => {
 
 manage_money = (current_bal) => {
     let amt_move = $('#amt_move').val();
-    let url = "http://127.0.0.1:5000/"
+    let url = ""
     let manage_credit = document.getElementById('credit_radio').checked;
     let manage_debit = document.getElementById('debit_radio').checked;
 
@@ -72,7 +72,7 @@ sell_bitcoin = (clientId, membership_type) => {
         }
         $.ajax({
             type: "POST",
-            url: "http://127.0.0.1:5000/sell_bitcoin",
+            url: "sell_bitcoin",
             data: JSON.stringify(data),// now data come in this function
             contentType: "application/json; charset=utf-8",
             crossDomain: true,
@@ -118,7 +118,7 @@ buy_bitcoin = (recipient_id, membership_type, client_id, bitcoin_val) => {
         }
         $.ajax({
             type: "POST",
-            url: "http://127.0.0.1:5000/buy_bitcoin",
+            url: "buy_bitcoin",
             data: JSON.stringify(data),// now data come in this function
             contentType: "application/json; charset=utf-8",
             crossDomain: true,
@@ -139,7 +139,7 @@ buy_bitcoin = (recipient_id, membership_type, client_id, bitcoin_val) => {
 get_bitcoin_rate = () => {
     $.ajax({
         type:"GET",
-        url:'http://127.0.0.1:5000/get_bit_rate',
+        url:'get_bit_rate',
         contentType: "application/json; charset=utf-8",
         crossDomain:true,
         dataType:"json",
@@ -153,7 +153,7 @@ get_bitcoin_rate = () => {
 
 manage_bitcoin = (cur_bitcoin) => {
     let amt = $('#bit_move').val();
-    let url = 'http://127.0.0.1:5000/';
+    let url = '';
 
     let manage_credit_bit = document.getElementById('credit_radio_bit').checked;
     let manage_debit_bit = document.getElementById('debit_radio_bit').checked;
@@ -233,7 +233,7 @@ getTransaction = () => {
 
     $.ajax({
         type:"GET",
-        url:"http://127.0.0.1:5000/get_transaction?sDate="+startDate+"&eDate="+endDate,
+        url:"get_transaction?sDate="+startDate+"&eDate="+endDate,
         contentType: "application/json; charset=utf-8",
         crossDomain:true,
         dataType:"json",
@@ -253,7 +253,7 @@ deleteUser = (userName) => {
 
     $.ajax({
         type:"POST",
-        url:"http://127.0.0.1:5000/delete_user",
+        url:"delete_user",
         data : JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         crossDomain:true,
@@ -276,7 +276,7 @@ deleteTrader = (traderName) => {
 
     $.ajax({
         type:"POST",
-        url:"http://127.0.0.1:5000/delete_trader",
+        url:"delete_trader",
         data : JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         crossDomain:true,
