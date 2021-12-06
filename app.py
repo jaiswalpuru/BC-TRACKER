@@ -35,7 +35,7 @@ if 'DATABASE_URL' in os.environ:
     app.config['MYSQL_DATABASE_USER'] = os.environ['db_user']
     app.config['MYSQL_DATABASE_PASSWORD'] = os.environ['db_pass']
     app.config['MYSQL_DATABASE_DB'] = os.environ['database']
-    app.config['MYSQL_HOST'] = os.environ['host']
+    app.config['MYSQL_DATABASE_HOST'] = os.environ['host']
 else:
     # initialize all the key value pairs required for the mysql connection
     app.config['MYSQL_DATABASE_USER'] = config['USERNAME']
