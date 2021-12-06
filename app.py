@@ -275,7 +275,7 @@ def update_transaction_table(client_decision):
                                                                   seller_bitcoin_commission_rate * int(seller_log[4]) / 100),
                                         recipient_id,))
 
-            cursor.execute('UPDATE Transaction SET Status = %s WHERE ClientId = %s',(decision, client_id, ) )
+            cursor.execute('UPDATE Transaction SET Status = %s, TraderId = %s  WHERE ClientId = %s',(decision, session[id], client_id, ) )
 
             mysql.get_db().commit()
     return True
@@ -595,10 +595,9 @@ def buy_bitcoin():
 
     if past_history:
         return json.dumps({'success':False})
-
-    cursor.execute('INSERT INTO TRANSACTION VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
+    cursor.execute('INSERT INTO TRANSACTION VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
                    (client_id, transaction_id, "BUY", get_current_datetime(), commission_paid,
-                    commission_type, recipient_id, bitcoin_unit_to_buy, 'pending', commission_rate_type,))
+                    commission_type, recipient_id, bitcoin_unit_to_buy, 'pending', commission_rate_type, 0))
     mysql.get_db().commit()
 
     return json.dumps({'success':True})
@@ -651,6 +650,10 @@ def buy_ether():
         cursor.execute('UPDATE ACC_DETAILS SET FiatCurrency = %s WHERE ClientId = %s',
                        (curr_balance-(bitcoin_unit_to_buy*rate), client_id,))
         cursor.execute('UPDATE BITCOIN SET Units = %s WHERE ClientId = %s', (curr_bitcoin+bitcoin_unit_to_buy, client_id, ))
+        transaction_id = get_random_string()
+        cursor.execute('INSERT INTO TRANSACTION VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
+                       (client_id, transaction_id, "BUY_ETHER",
+                        get_current_datetime(), 0, 0, 0,bitcoin_unit_to_buy, "completed", 'None', 0, ))
         mysql.get_db().commit()
         return json.dumps({"success":True, "msg":"Congratulations you just bought {} bitcoin from ether".format(bitcoin_unit_to_buy)})
     else :
