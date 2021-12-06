@@ -14,7 +14,7 @@ from helpers.helpers import *
 from cryptography.fernet import Fernet
 
 app = Flask(__name__)
-CORS(app, resources={ r'/*': {'origins': 'http://127.0.0.1:5000'}}, supports_credentials=True)
+CORS(app, supports_credentials=True)
 app.config['CORS_HEADERS'] = 'Content-Type'
 # cache config
 cache_config = {
@@ -655,15 +655,16 @@ def get_bit_rate():
 
 @app.after_request
 def after_request(response):
-  response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5000')
+  response.headers.add('Access-Control-Allow-Origin', '*')
   response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
   response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
   response.headers.add('Access-Control-Allow-Credentials', 'true')
   return response
 
 # buy from ether
-@cross_origin
+
 @app.route('/buy_ether', methods=['POST'])
+@cross_origin(support_credentials=True)
 def buy_ether():
     obj = get_json_data(request.data)
 
