@@ -2,13 +2,10 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from flask_caching import Cache
 from flask_cors import CORS, cross_origin
-from markupsafe import escape
 from flaskext.mysql import MySQL
-import pymysql
 import re, yaml, io
 import datetime
 import json
-import base64
 from adapters.api_calls_one import *
 from helpers.helpers import *
 from cryptography.fernet import Fernet
